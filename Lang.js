@@ -1,3 +1,12 @@
+/*
+t.me/megabaytu
+there is an error:
+Invalid or unexpected token
+at undefined
+
+at new Script bot.js:-722
+*/
+
 let LIB_PREFIX = 'lang_lib_'
 
 function setUserLanguage(curLangName){
