@@ -162,8 +162,7 @@ growthResource = function(resource){
       if(!growth){ return }
 
       growth.base_value = base_value;
-      growth.completed_iterations_count = 0;
-      return this._updateIteration(this.growth);
+      return Bot.setProperty(this.propName(), growth, 'json');
     },
 
     _newGrowth: function(options){
