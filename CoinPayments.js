@@ -26,9 +26,15 @@ function setBBApiKey(apiKey){
 }
 
 function loadKey(){
+  var publicKey = Bot.getProperty(libPrefix + "publickey");
+  var privateKey = Bot.getProperty(libPrefix + "privatekey");
+
+  if(!publicKey){ throw new Error("CP lib: no publicKey. You need to setup it") }
+  if(!privateKey){ throw new Error("CP lib: no privateKey. You need to setup it") }
+
   return {
-    publicKey: Bot.getProperty(libPrefix + "publickey"),
-    privateKey: Bot.getProperty(libPrefix + "privatekey")
+    publicKey: publicKey,
+    privateKey: privateKey
   }
 }
 
