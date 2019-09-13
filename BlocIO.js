@@ -1,16 +1,16 @@
 let API_URL = 'https://block.io/api/v2/';
-let libPrefix = 'LibBlockIO_'
+let libPrefix = 'libblockio_'
 
 function getCredential(options, prms){
   let apiKey = ( prms.api_key ? prms.api_key : 
-    Bot.getProperty( libPrefix + options.coin + 'ApiKey')
+    Bot.getProperty( libPrefix + options.coin.toLowerCase() + 'apikey')
   );
   
   let pin = "";
   if(options.method.indexOf('withdraw') + 1) {
 
     pin = (prms.pin ? prms.pin :
-      Bot.getProperty( libPrefix + 'SecretPin')
+      Bot.getProperty( libPrefix + 'secretpin')
     )
 
     if(pin!=""){ pin = "&pin=" + pin }
@@ -136,7 +136,7 @@ function getMethodsForCoin(coin){
   ]);
 
   result['setApiKey'] = function(apiKey){
-      Bot.setProperty( libPrefix + coin + 'ApiKey', apiKey, 'string');
+      Bot.setProperty( libPrefix + coin.toLowerCase() + 'apikey', apiKey, 'string');
       return coin;
   }
 
@@ -144,7 +144,7 @@ function getMethodsForCoin(coin){
 }
 
 let setSecretPin = function(pin){
-  Bot.setProperty( libPrefix + 'SecretPin', pin, 'string');
+  Bot.setProperty( libPrefix + 'secretpin', pin, 'string');
 }
 
 publish({
