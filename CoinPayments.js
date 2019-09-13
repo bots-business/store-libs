@@ -14,11 +14,11 @@ function cryptHmacSHA512(body, privateKey){
 }
 
 function setPrivateKey(key){
-  Bot.setProperty(libPrefix + "privateKey", key, "string");
+  Bot.setProperty(libPrefix + "privatekey", key, "string");
 }
 
 function setPublicKey(key){
-  Bot.setProperty(libPrefix + "publicKey", key, "string");
+  Bot.setProperty(libPrefix + "publickey", key, "string");
 }
 
 function setBBApiKey(apiKey){
