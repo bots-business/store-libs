@@ -6,7 +6,10 @@ function setUserLanguage(curLangName){
 
 function getUserLanguage(){
   let lng = User.getProperty(LIB_PREFIX + 'curLangName');
-  if(lng){ return lng }
+  if(lng){
+    let json = Bot.getProperty(LIB_PREFIX + lng);
+    if(json){ return lng }
+  }
   return getDefaultLanguage();
 }
 
@@ -35,7 +38,8 @@ function get(lang){
   if(!json){
     throw 'Language is not setup: ' + curLng;
   }
-  return json
+
+  return json;
 }
 
 publish({
