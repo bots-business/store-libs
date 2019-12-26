@@ -42,6 +42,24 @@ function get(lang){
   return json;
 }
 
+function get_trans_item(item, lang){
+  var result;
+  var json = get(lang);
+  try{ result = eval("json." + item) }
+  catch(err){}
+
+  return result
+}
+
+function t(item, lang){
+  // for lang
+  var result = get_trans_item(item, lang);
+  if(result){ return result }
+
+  // for default language
+  return get_trans_item(item);
+}
+
 publish({
   user:{
     setLang: setUserLanguage,
@@ -52,5 +70,6 @@ publish({
     getCurLang: getDefaultLanguage
   },
   setup: setupLanguage,
-  get: get
+  get: get,
+  t: t,
 })
