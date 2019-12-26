@@ -60,6 +60,24 @@ function t(item, lang){
   return get_trans_item(item);
 }
 
+function getCommandByAlias(alias, lang){
+  var json = get(lang)
+  if(!json){ return }
+  if(!json.aliases){ return }
+
+  var aliases;
+  for(var key in json.aliases){
+    // aliases separated with ",". Can have spaces - so remove spaces:
+    aliases = key.split(" ,").join(",").split(", ").join(",");
+    aliases = aliases.split(",");
+    for(var ind in aliases){
+      if(aliases[ind]==alias){
+        return json.aliases[key]
+      }
+    }
+  }
+}
+
 publish({
   user:{
     setLang: setUserLanguage,
@@ -72,4 +90,5 @@ publish({
   setup: setupLanguage,
   get: get,
   t: t,
+  getCommandByAlias: getCommandByAlias
 })
