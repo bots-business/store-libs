@@ -28,7 +28,7 @@ function setupLanguage(langName, keys){
 }
 
 function get(lang){
-  let curLng
+  let curLng;
   if(lang){ curLng = lang }
   else{
     curLng = getUserLanguage();
