@@ -6,10 +6,7 @@ function setUserLanguage(curLangName){
 
 function getUserLanguage(){
   let lng = User.getProperty(LIB_PREFIX + 'curLangName');
-  if(lng){
-    let json = Bot.getProperty(LIB_PREFIX + lng);
-    if(json){ return lng }
-  }
+  if(lng){ return lng }
   return getDefaultLanguage();
 }
 
@@ -57,7 +54,7 @@ function t(item, lang){
   if(result){ return result }
 
   // for default language
-  return get_trans_item(item);
+  return get_trans_item(item, getDefaultLanguage());
 }
 
 function getCommandByAlias(alias, lang){
