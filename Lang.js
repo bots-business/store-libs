@@ -5,8 +5,10 @@ function setUserLanguage(curLangName){
 }
 
 function getUserLanguage(){
-  let lng = User.getProperty(LIB_PREFIX + 'curLangName');
-  if(lng){ return lng }
+  if(user){
+    let lng = User.getProperty(LIB_PREFIX + 'curLangName');
+    if(lng){ return lng }
+  }
   return getDefaultLanguage();
 }
 
