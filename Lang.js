@@ -60,6 +60,7 @@ function t(item, lang){
 }
 
 function getCommandByAlias(alias, lang){
+  if(!alias){ return }
   var json = get(lang)
   if(!json){ return }
   if(!json.aliases){ return }
@@ -70,7 +71,7 @@ function getCommandByAlias(alias, lang){
     aliases = key.split(" ,").join(",").split(", ").join(",");
     aliases = aliases.split(",");
     for(var ind in aliases){
-      if(aliases[ind]==alias){
+      if(aliases[ind].toLowerCase()==alias.toLowerCase()){
         return json.aliases[key]
       }
     }
