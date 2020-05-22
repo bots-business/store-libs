@@ -96,15 +96,15 @@ function onSuccess(){
   var result = content.split("APP-RESULT")[1];
 
   if(!result){
-    // error
-    var arr = content.split("width:600px");
-    var error = arr[1].split("<")[0]
-    return Bot.runCommand(errCalback, {error: error});
+   // error
+  var arr = content.split("width:600px");
+  var error = "";
+  try{
+    var error = arr[1].split("<")[0];
+  } catch(e) {
+    error = "error with data posting: "+content;
   }
-
-  result = decodeURI(result);
-  result = JSON.parse(result)
-  Bot.runCommand(callback, result);
+  return Bot.runCommand(errCalback, {error: error});
 }
 
 function onError(){
