@@ -85,7 +85,8 @@ function generateSIGN(options){
   let body = "";
   if(options.body){ body = options.body }
   let sign = options.timestamp + options.method + options.path + body;
-  let hmac = CryptoJS.HmacSHA256(sign, getOptions().SecretAPIKey);
+  let key = options.secretApiKey || getOptions().SecretAPIKey;
+  let hmac = CryptoJS.HmacSHA256(sign, key);
 
   return String(hmac);
 }
@@ -94,7 +95,7 @@ function getCredentials(options){
   // SEE: https://developers.coinbase.com/docs/wallet/api-key-authentication
   options.timestamp = timestamp();
   return {
-    "CB-ACCESS-KEY": getOptions().APIKey,  // SecretAPIKey
+    "CB-ACCESS-KEY": options.apiKey || getOptions().APIKey,
     "CB-ACCESS-SIGN": generateSIGN(options),
     "CB-ACCESS-TIMESTAMP": options.timestamp
   }
@@ -124,6 +125,8 @@ function apiCall(options){
   //    background - perform request in background for more timeout
   //    onSuccess - commnad onSuccess
   //    onError - commnad onError
+  //    apiKey - if you need custom Api Key
+  //    secretApiKey - if you need custom Api Key
   if(!options.method){
     options.method = "GET" // by default
   }
