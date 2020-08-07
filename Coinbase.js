@@ -50,7 +50,7 @@ function setupAdminPanel(){
   AdminPanel.setPanel({
     panel_name: lib.panelName,
     data: panel,
-    force: true // default false - save fields values
+    force: false // default false - save fields values
   });
 }
 
@@ -83,9 +83,18 @@ function timestamp(){
 function generateSIGN(options){
   // timestamp + method + requestPath + body
   let body = "";
-  if(options.body){ body = options.body }
+  if(options.body){
+    body = JSON.stringify(options.body);
+  }
+
   let sign = options.timestamp + options.method + options.path + body;
+
   let key = options.secretApiKey || getOptions().SecretAPIKey;
+  if(!key){
+    throw new Error(libPrefix + 
+      ": Please setup secretApiKey https://help.bots.business/libs/coinbase#initial-setup");
+  }
+
   let hmac = CryptoJS.HmacSHA256(sign, key);
 
   return String(hmac);
@@ -94,11 +103,25 @@ function generateSIGN(options){
 function getCredentials(options){
   // SEE: https://developers.coinbase.com/docs/wallet/api-key-authentication
   options.timestamp = timestamp();
-  return {
-    "CB-ACCESS-KEY": options.apiKey || getOptions().APIKey,
-    "CB-ACCESS-SIGN": generateSIGN(options),
-    "CB-ACCESS-TIMESTAMP": options.timestamp
+  var apiKey = options.apiKey || getOptions().APIKey;
+
+  if(!apiKey){
+    throw new Error(libPrefix + 
+      ": Please setup ApiKey https://help.bots.business/libs/coinbase#initial-setup");
   }
+
+  return {
+    "CB-ACCESS-KEY": apiKey,
+    "CB-ACCESS-SIGN": generateSIGN(options),
+    "CB-ACCESS-TIMESTAMP": options.timestamp,
+    "CB-VERSION": "2019-11-15"
+  }
+}
+
+function withSupportForParams(command){
+  if(!command){ return "" }
+  // user can pass params here
+  return command.split(" ").join("%%");
 }
 
 function buildQueryParams(options){
@@ -107,14 +130,28 @@ function buildQueryParams(options){
 
   url = lib.endpoint + options.path;
 
+  onSuccess = withSupportForParams(options.onSuccess);
+  onError = withSupportForParams(options.onError);
+
   return {
     url: url,
-    success: lib.commands.onApiCall + " " + options.onSuccess,
-    error: lib.commands.onApiCallError + " " + options.onError,
+    success: lib.commands.onApiCall + " " + onSuccess + " " + onError,
+    error: lib.commands.onApiCallError + " " + onError,
     background: options.background, // if you have timeout error
     headers: headers,
     body: options.body
   }
+}
+
+function getCorrectedPath(path){
+  if(path[0]=="/"){
+    path = path.substring(1, path.length)
+  }
+  if(path[path.length-1]=="/"){
+    path = path.substring(0, path.length - 1)
+  }
+
+  return path
 }
 
 function apiCall(options){
@@ -134,8 +171,10 @@ function apiCall(options){
   options.method = options.method.toUpperCase();
 
   if(!options.path){
-    throw new Error("Coinbase Lib: need pass API options.path for Api Call")
+    throw new Error(libPrefix + ": need pass API options.path for Api Call")
   }
+
+  options.path = getCorrectedPath(options.path);
 
   let reqParams = buildQueryParams(options);
 
@@ -148,18 +187,71 @@ function apiCall(options){
   }
 }
 
-function onApiCall(){
-  let cmd = params;
-  Bot.run({ command: cmd, options: { content: content } })
+function getResultOptions(){
+  return ( { content: content, http_status: http_status } )
 }
 
-function onApiCallError(){
-  let cmd = params;
-  Bot.run({ command: cmd, options: { content: content } })
+function getError(code){
+  code = parseInt(code);
+  var errors = [
+    {id: "two_factor_required", code: 402, description: "When sending money over 2fa limit"},
+    {id: "param_required", code: 400, description: "Missing parameter"},
+    {id: "validation_error", code: 400, description: "Unable to validate POST/PUT"},
+    {id: "invalid_request", code: 400, description: "Invalid request"},
+    {id: "personal_details_required", code: 400, description: "User’s personal detail required to complete this request"},
+    {id: "identity_verification_required", code: 400, description: "Identity verification is required to complete this request"},
+    {id: "jumio_verification_required", code: 400, description: "Document verification is required to complete this request"},
+    {id: "jumio_face_match_verification_required", code: 400, description: "Document verification including face match is required to complete this request"},
+    {id: "unverified_email", code: 400, description: "User has not verified their email"},
+    {id: "authentication_error", code: 401, description: "Invalid auth (generic)"},
+    {id: "invalid_scope", code: 403, description: "User hasn’t authenticated necessary scope"},
+    {id: "not_found", code: 404, description: "Resource not found"},
+    {id: "rate_limit_exceeded", code: 429, description: "Rate limit exceeded"},
+    {id: "internal_server_error", code: 500, description: "Internal server error"}
+  ];
+
+  var err_msg = "";
+  var err;
+  for(var ind in errors){
+    err = errors[ind];
+    if(err.code==code){
+      err_msg += err.id + ": " + err.description + "; "
+    }
+  }
+  return err_msg;
+}
+
+function getCommandFromParam(param){
+  if(!param){ return }
+  return param.split("%%").join(" ");
+}
+
+function onApiCall(){
+  var cmds = params.split(" ");
+  var onSuccess = getCommandFromParam(cmds[0]);
+  var onError = getCommandFromParam(cmds[1]);
+  
+  if(!http_status){ http_status = 0 }
+  http_status = parseInt(http_status);
+
+  if((http_status>299)||(http_status<200)){
+    var error = libPrefix + " Api error. " + getError(http_status);
+    if(!onError){ throw new Error(error) }
+
+    return onApiCallError(onError, error);
+  }
+  Bot.run({ command: onSuccess, options: getResultOptions() })
+}
+
+function onApiCallError(onError, error){
+  if(!onError){ onError = params }
+  var opts = getResultOptions();
+  opts.error = error;
+  Bot.run({ command: onError, options: opts })
 }
 
 function onNotification(){
-  // TODO
+  Bot.sendMessage(inspect(content));
 }
 
 publish({
