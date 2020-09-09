@@ -43,7 +43,15 @@ function setupAdminPanel(){
         title: "Notifications url. Fill this notifications url on API key creation",
         description: webhookUrl,
         icon: "flash"
-      }
+      },
+      {
+        name: "OnNotification",
+        title: "Command to be called on notifications",
+        description: "this command will be executed on notification",
+        type: "string",
+        placeholder: "/onCoinbaseNotify",
+        icon: "notifications"
+      },
     ]
   }
   
@@ -187,10 +195,6 @@ function apiCall(options){
   }
 }
 
-function getResultOptions(){
-  return ( { content: content, http_status: http_status } )
-}
-
 function getError(code){
   code = parseInt(code);
   var errors = [
@@ -226,6 +230,13 @@ function getCommandFromParam(param){
   return param.split("%%").join(" ");
 }
 
+function getResultOptions(){
+  return ( {
+    result: JSON.parse(content),
+    http_status: http_status
+  } )
+}
+
 function onApiCall(){
   var cmds = params.split(" ");
   var onSuccess = getCommandFromParam(cmds[0]);
@@ -240,6 +251,7 @@ function onApiCall(){
 
     return onApiCallError(onError, error);
   }
+
   Bot.run({ command: onSuccess, options: getResultOptions() })
 }
 
@@ -251,7 +263,9 @@ function onApiCallError(onError, error){
 }
 
 function onNotification(){
-  Bot.sendMessage(inspect(content));
+  var onNotify = getOptions().OnNotification;
+  if(!onNotify){ return }
+  Bot.run({ command: onNotify, options: getResultOptions() })
 }
 
 publish({
