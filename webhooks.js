@@ -3,7 +3,7 @@ let API_URL = 'https://api.bots.business/v1/bots/';
 
 
 function MD5(d){
-  result = M(V(Y(X(d),8*d.length)));
+  var result = M(V(Y(X(d),8*d.length)));
   return result.toLowerCase()};
   function M(d){for(var _,m='0123456789ABCDEF',f='',r=0;r<d.length;r++)_=d.charCodeAt(r),f+=m.charAt(_>>>4&15)+m.charAt(15&_);
   return f}function X(d){for(var _=Array(d.length>>2),m=0;m<_.length;m++)_[m]=0;
@@ -38,7 +38,7 @@ function buildUrl(options){
 }
 
 function getGlobalUrl(options){
-  if(!options){ throw "WebhooksLib: need pass options for function getGlobalUrl" }
+  if(!options){ throw 'WebhooksLib: need pass options for function getGlobalUrl' }
 
   options.api_key = Bot.getProperty(LIB_PREFIX + 'api_key');
 
@@ -50,8 +50,8 @@ function getGlobalUrl(options){
 }
 
 function getUrlFor(options){
-  if(!options.user_id){ options.user_id = "" }
-  if(!options){ throw "WebhooksLib: need pass options for function getUrlFor" }
+  if(!options.user_id){ options.user_id = '' }
+  if(!options){ throw 'WebhooksLib: need pass options for function getUrlFor' }
 
   let _saltedParams = bot.token + '-' + options.user_id + '-' +
                         options.command + ' Salt is very salty!'

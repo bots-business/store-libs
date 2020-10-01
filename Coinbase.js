@@ -8,7 +8,7 @@ let lib = {
     onApiCall: libPrefix + "_onApiCall",
     onApiError: libPrefix + "_onApiCallError"
   },
-  panelName: libPrefix + 'Options'
+  panelName: libPrefix + "Options"
 }
 
 function setupAdminPanel(){
@@ -72,10 +72,6 @@ function setup(){
     return sendNoLibMessage("Webhook Lib");
   }
 
-  if(!Libs.CryptoJS){
-    return sendNoLibMessage("CryptoJS Lib");
-  }
-
   setupAdminPanel();
 }
 
@@ -136,10 +132,10 @@ function buildQueryParams(options){
   options.path = lib.apiVersion + options.path;
   let headers = getCredentials(options);
 
-  url = lib.endpoint + options.path;
+  let url = lib.endpoint + options.path;
 
-  onSuccess = withSupportForParams(options.onSuccess);
-  onError = withSupportForParams(options.onError);
+  let onSuccess = withSupportForParams(options.onSuccess);
+  let onError = withSupportForParams(options.onError);
 
   return {
     url: url,

@@ -7,8 +7,8 @@ function emitEvent(eventName, prms = {}){
 
 function saveRefListFor(userId){
   // save RefList - JSON
-  propName = 'REFLIB_refList' + userId;
-  refList = Bot.getProperty(propName);
+  let propName = 'REFLIB_refList' + userId;
+  let refList = Bot.getProperty(propName);
 
   if(!refList){ refList = { count: 0, users:[] } };
   
@@ -61,7 +61,7 @@ function isAlreadyAttracted(){
 function trackRef(){
   let prefix = 'user'
 
-  let uprefix = Bot.getProperty("REFLIB_refList_link_prefix");
+  let uprefix = Bot.getProperty('REFLIB_refList_link_prefix');
   if(uprefix){ prefix = uprefix  }
 
   let arr = params.split(prefix);
@@ -82,11 +82,13 @@ function doSort(a, b){
 }
 
 function getTopList(top_count=10){
-  activityList = Bot.getProperty('REFLIB_activityList');
+  var activityList = Bot.getProperty('REFLIB_activityList');
 
   let sortedList = [];
 
-  for(key in activityList){
+  let count, username
+
+  for(var key in activityList){
     count =  activityList[key].count;
     username = activityList[key].username;
     sortedList.push(
@@ -96,7 +98,7 @@ function getTopList(top_count=10){
 
   sortedList.sort(doSort);
 
-  result = [];
+  let result = [];
 
   for(var i=0; i<(top_count-1); i++){
     let item = sortedList[i];
@@ -114,7 +116,7 @@ function clearTopList(){
 
 function getRefList(){
   let refList = Bot.getProperty('REFLIB_refList' + user.id);
-  result = []
+  let result = []
   if((refList)&&(refList.count>0)){
     result = refList.users;
   }
@@ -137,9 +139,9 @@ function attractedByChannel(){
 
 function getRefLink(botName, prefix){
   if(!prefix){
-    prefix = "user"
+    prefix = 'user'
   }else{
-    Bot.setProperty("REFLIB_refList_" + "link_prefix", prefix, 'string');
+    Bot.setProperty('REFLIB_refList_' + 'link_prefix', prefix, 'string');
   }
 
   let aff_link='https://t.me/' + botName + 

@@ -1,6 +1,6 @@
-libPrefix = 'ResourcesLib_';
+let libPrefix = 'ResourcesLib_';
 
-growthResource = function(resource){
+let growthResource = function(resource){
   return {
     resource: resource,
 
@@ -82,7 +82,8 @@ growthResource = function(resource){
       return result
     },
 
-    _calcByTotalIteractions(value, total_iterations, growth){
+    _calcByTotalIterations(value, total_iterations, growth){
+      var result;
       if(growth.type=='simple'){
         result = value + total_iterations * growth.increment
       }
@@ -119,7 +120,7 @@ growthResource = function(resource){
       let fraction = total_iterations % 1;
       total_iterations = total_iterations - fraction;
 
-      result = this._calcByTotalIteractions(value, total_iterations, growth)
+      var result = this._calcByTotalIterations(value, total_iterations, growth)
 
       growth.completed_iterations_count+= total_iterations;
       
@@ -135,7 +136,7 @@ growthResource = function(resource){
       if(!growth){ return value }
       if(!growth.enabled){ return value }
 
-      new_value = this._calcValue(value, growth);
+      let new_value = this._calcValue(value, growth);
 
       if(!new_value){ return value }
 
@@ -158,7 +159,7 @@ growthResource = function(resource){
     },
 
     _updateBaseValue: function(base_value){
-      growth = this.info();
+      var growth = this.info();
       if(!growth){ return }
 
       growth.base_value = base_value;
@@ -208,7 +209,7 @@ growthResource = function(resource){
   }
 }
 
-commonResource = function(objName, objID, resName){
+let commonResource = function(objName, objID, resName){
   return {
     objName: objName,
     objID: objID,
@@ -227,9 +228,9 @@ commonResource = function(objName, objID, resName){
 
     verifyNumber: function(value){ 
       if(!this.isNumber(value)){
-        let evalue = "";
-        if(typeof(value)!="undefined"){ evalue = JSON.stringify(value) }
-        throw 'ResLib: value must be number only. It is not number: ' + typeof(value) + " " + evalue;
+        let evalue = '';
+        if(typeof(value)!='undefined'){ evalue = JSON.stringify(value) }
+        throw 'ResLib: value must be number only. It is not number: ' + typeof(value) + ' ' + evalue;
       }
     },
 
@@ -352,32 +353,32 @@ commonResource = function(objName, objID, resName){
   }
 }
 
-growthFor = function(resource){
+let growthFor = function(resource){
   let growth = growthResource(resource);
   resource._setGrowth(growth);
   return growth;
 }
 
-getResourceFor = function(object, object_id, resName){
+let getResourceFor = function(object, object_id, resName){
   let res =  commonResource(object, object_id, resName);
   growthFor(res);
 
   return res;
 }
 
-userResource = function(resName){
+let userResource = function(resName){
   return getResourceFor('user', user.telegramid, resName);
 }
 
-chatResource = function(resName){
+let chatResource = function(resName){
   return getResourceFor('chat', chat.chatid, resName);
 }
 
-anotherUserResource = function(resName, telegramid){
+let anotherUserResource = function(resName, telegramid){
   return getResourceFor('user', telegramid, resName);
 }
 
-anotherChatResource = function(resName, chatid){
+let anotherChatResource = function(resName, chatid){
   return getResourceFor('chat', chatid, resName);
 }
 
