@@ -272,4 +272,4 @@ publish({
 
 on(lib.commands.onNotification, onNotification)
 on(lib.commands.onApiCall, onApiCall)
-on(lib.commands.onApiCallError, onApiCallError)
+on(lib.commands.onApiError, onApiCallError)
