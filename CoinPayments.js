@@ -275,7 +275,7 @@ function getWebhookUrl(command){
     throw "BB Api Key is not defined. Need define it with function setBBApiKey."
   }
 
-  let url = "https://api.bots.business/v1/bots/" + String(bot.id) + 
+  let url = "https://" + BB_API_URL + "/v1/bots/" + String(bot.id) + 
       "/new-webhook?api_key=" + apiKey + "&command=" +
       encodeURIComponent(command) +
       "&user_id=" + user.id;

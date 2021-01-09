@@ -1,5 +1,5 @@
 let LIB_PREFIX = 'webhook_lib_'
-let API_URL = 'https://api.bots.business/v1/bots/';
+let API_URL = 'https://' + BB_API_URL + '/v1/bots/';
 
 
 function MD5(d){
