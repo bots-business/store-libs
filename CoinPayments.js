@@ -37,7 +37,9 @@ function getQueryParams(json){
   }).join("&");
 }
 
-function apiCall(options){ 
+function apiCall(options){
+  canCallApi();
+
   let key = loadKey();
   
   let body = "version=1&format=json&key=" + key.publicKey +
@@ -62,8 +64,41 @@ function apiCall(options){
   HTTP.post( params )
 }
 
+function canCallApi(){
+  // Bug workaround for:
+  // Too many errors in the last two minutes from XXX - please fix your code and try again
+
+  let lastErr = Bot.getProperty(libPrefix + "lastError");
+  if(!lastErr){ return true }
+
+  let curTime = Date.now();
+  if(curTime-lastErr.time > 300000){
+    // 5 minutes have passed
+    return true;
+  }
+
+  throw new Error(
+    "CoinPayments Lib: Can not make Api request because you have error in last 5 minutes. " +
+    "Please fix error and try again. Last error on message: " + lastErr.message + ". Last error: " + lastErr.error
+  )
+}
+
+function saveError(json){
+  if(json.error=="ok"){ return }
+
+  Bot.setProperty(
+    libPrefix + "lastError",
+    {
+      time: Date.now(),
+      error: json.error,
+      message: message
+    }
+  )
+}
+
 function onApiResponse(){
   let json = JSON.parse(content);
+  saveError(json)
   Bot.runCommand(params, {body: json} );
 }
 
@@ -71,6 +106,8 @@ function haveError(options, errCallback){
   let err = options.body.error;
 
   if(err=="ok"){ return false }
+
+  saveError(options.body);
 
   if(errCallback){
     Bot.runCommand(errCallback, {result: result, error: err });
