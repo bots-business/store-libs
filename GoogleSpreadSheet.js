@@ -17,7 +17,7 @@ function setUrlApp(appUrl){
 }
 
 function getAppUrl(){
-  result = Bot.getProperty(libPrefix + "app-url");
+  let result = Bot.getProperty(libPrefix + "app-url");
   if(!result){
     throwError("Need set Google App url before using")
   }
