@@ -1,14 +1,14 @@
-let libPrefix = "currencyConverter";
+let libPrefix = 'currencyConverter';
 
 function storeRate(){
-  if(content.split(" ").join("")=="{}"){
-    throw new Error("Seems we have limits with Free Plan - https://free.currencyconverterapi.com/")
+  if(content.split(' ').join('')=='{}'){
+    throw new Error('Seems we have limits with Free Plan - https://free.currencyconverterapi.com/')
   }
 
   let json = JSON.parse(content);
 
   if(json.error){
-    Bot.sendMessage("Error: " + json.error);
+    Bot.sendMessage('Error: ' + json.error);
     return
   }
 
@@ -51,7 +51,7 @@ function isHaveError(query, onSuccess){
   }
 
   else if(query.split('_').length!=2){
-    err_msg = 'Need TWO currencies separated with "_". ! For example: EUR_USD'
+    err_msg = 'Need TWO currencies separated with _. ! For example: EUR_USD'
   }
 
   else if(typeof(onSuccess)!='string'){
@@ -69,14 +69,14 @@ function isHaveError(query, onSuccess){
 function getApiUrl(query, onSuccess){
   if(isHaveError(query, onSuccess)){ return }
 
-  let apiKey = Bot.getProperty(libPrefix + "ApiKey", "9e878aebb95bf44aba20");
+  let apiKey = Bot.getProperty(libPrefix + 'ApiKey', '9e878aebb95bf44aba20');
 
   return 'http://free.currencyconverterapi.com/api/v5/convert?compact=y&q=' + query + 
-    "&apiKey=" + apiKey;
+    '&apiKey=' + apiKey;
 }
 
 function setupApiKey(apiKey){
-  Bot.setProperty(libPrefix + "ApiKey", apiKey, "string");
+  Bot.setProperty(libPrefix + 'ApiKey', apiKey, 'string');
 }
 
 publish({
