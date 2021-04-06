@@ -263,6 +263,10 @@ let commonResource = function(objName, objID, resName){
 
     have: function(res_amount){
       this.verifyNumber(res_amount);
+      // can not have negative or null amount
+      if(res_amount < 0){ return false }
+      if(res_amount == 0){ return false }
+
       return this.value() >= res_amount;
     },
     
