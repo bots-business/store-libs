@@ -1,0 +1,23 @@
+libPrefix = "indiadatetimeformate"
+
+function load(){
+
+  HTTP.get( {
+
+    url: "http://example.com",
+
+    success: libPrefix + 'onLoading '
+
+    // headers: headers - if you need headers
+
+  } )
+
+}
+
+function onLoading(){
+
+   Bot.sendMessage(content);
+
+}
+
+on(libPrefix + 'onLoading', onLoading );
