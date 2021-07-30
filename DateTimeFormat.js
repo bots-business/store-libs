@@ -14,7 +14,7 @@
 
 function format(date, mask, utc){
   var dateFormat = function() {
-    var token = /d{1,4}|m{1,4}|s{1,2}|M{1,2}|m{1,4}|H{1,2}|yyyy{1,4}|y{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,
+    var token = token = /d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,
       timezone = /\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g,
       timezoneClip = /[^-+\dA-Z]/g,
       pad = function(val, len) {
