@@ -124,7 +124,7 @@ function getRefList(){
 }
 
 function clearRefList(){
-  propName = 'REFLIB_refList' + user.id;
+  let propName = 'REFLIB_refList' + user.id;
   Bot.setProperty(propName, { users:[], count:0 }, 'json');
   return true;
 }
