@@ -1,13 +1,19 @@
 let trackOptions = {};
 
+LIB_PREFIX = "REFLIB_";
+
 function emitEvent(eventName, prms = {}){
   let evenFun = trackOptions[eventName]
   if(evenFun){ evenFun(prms) }
 }
 
+function getProperty(propName){
+  return Bot.getProperty(LIB_PREFIX + propName);
+}
+
 function saveRefListFor(userId){
   // save RefList - JSON
-  let propName = 'REFLIB_refList' + userId;
+  let propName = LIB_PREFIX + 'refList' + userId;
   let refList = Bot.getProperty(propName);
 
   if(!refList){ refList = { count: 0, users:[] } };
@@ -20,7 +26,7 @@ function saveRefListFor(userId){
 
 function saveActiveUsers(userKey, refUser){
   // Top active users - activityList
-  let activityList = Bot.getProperty('REFLIB_activityList');
+  let activityList = Bot.getProperty(LIB_PREFIX + 'activityList');
   if(!activityList){ activityList = {} }
   
   let activity = activityList[userKey];
@@ -28,11 +34,11 @@ function saveActiveUsers(userKey, refUser){
     activityList[userKey] = { count:0, username: refUser.username }
   }
   activityList[userKey].count+= 1;
-  Bot.setProperty('REFLIB_activityList', activityList, 'json');
+  Bot.setProperty(LIB_PREFIX + 'activityList', activityList, 'json');
 }
 
 function setReferralByAnotherUser(userId){
-  let userKey = 'REFLIB_user' + userId;
+  let userKey = LIB_PREFIX + 'user' + userId;
   // it is for secure reason. User can pass any params to start!
   let refUser = Bot.getProperty(userKey);
 
@@ -48,20 +54,20 @@ function setReferralByAnotherUser(userId){
   saveActiveUsers(userKey, refUser);
 
   // refUser - it is JSON
-  User.setProperty('REFLIB_attracted_by_user', refUser, 'json');
+  User.setProperty(LIB_PREFIX + 'attracted_by_user', refUser, 'json');
   emitEvent('onAtractedByUser', refUser );
 }
 
 function isAlreadyAttracted(){
-  return User.getProperty('REFLIB_attracted_by_user') ||
-          User.getProperty('REFLIB_attracted_by_channel') ||
-          User.getProperty('REFLIB_old_user')
+  return User.getProperty(LIB_PREFIX + 'attracted_by_user') ||
+          User.getProperty(LIB_PREFIX + 'attracted_by_channel') ||
+          User.getProperty(LIB_PREFIX + 'old_user')
 }
 
 function trackRef(){
   let prefix = 'user'
 
-  let uprefix = Bot.getProperty('REFLIB_refList_link_prefix');
+  let uprefix = Bot.getProperty(LIB_PREFIX + 'refList_link_prefix');
   if(uprefix){ prefix = uprefix  }
 
   let arr = params.split(prefix);
@@ -71,7 +77,7 @@ function trackRef(){
     setReferralByAnotherUser(userId);
   }else{
     let channel = params;
-    User.setProperty('REFLIB_attracted_by_channel', channel, 'string');
+    User.setProperty(LIB_PREFIX + 'attracted_by_channel', channel, 'string');
     emitEvent('onAttracted', channel);
   }
 }
@@ -82,7 +88,7 @@ function doSort(a, b){
 }
 
 function getTopList(top_count=10){
-  var activityList = Bot.getProperty('REFLIB_activityList');
+  var activityList = Bot.getProperty(LIB_PREFIX + 'activityList');
 
   let sortedList = [];
 
@@ -110,12 +116,12 @@ function getTopList(top_count=10){
 }
 
 function clearTopList(){
-  Bot.setProperty('REFLIB_activityList', {}, 'json');
+  Bot.setProperty(LIB_PREFIX + 'activityList', {}, 'json');
   return true;
 }
 
 function getRefList(){
-  let refList = Bot.getProperty('REFLIB_refList' + user.id);
+  let refList = Bot.getProperty(LIB_PREFIX + 'refList' + user.id);
   let result = []
   if((refList)&&(refList.count>0)){
     result = refList.users;
@@ -124,24 +130,24 @@ function getRefList(){
 }
 
 function clearRefList(){
-  propName = 'REFLIB_refList' + user.id;
+  propName = LIB_PREFIX + 'refList' + user.id;
   Bot.setProperty(propName, { users:[], count:0 }, 'json');
   return true;
 }
 
 function attractedByUser(){
-  return User.getProperty('REFLIB_attracted_by_user')
+  return User.getProperty(LIB_PREFIX + 'attracted_by_user')
 }
 
 function attractedByChannel(){
-  return User.getProperty('REFLIB_attracted_by_channel')
+  return User.getProperty(LIB_PREFIX + 'attracted_by_channel')
 }
 
 function getRefLink(botName, prefix){
   if(!prefix){
     prefix = 'user'
   }else{
-    Bot.setProperty('REFLIB_refList_' + 'link_prefix', prefix, 'string');
+    Bot.setProperty(LIB_PREFIX + 'refList_' + 'link_prefix', prefix, 'string');
   }
 
   let aff_link='https://t.me/' + botName + 
@@ -149,14 +155,14 @@ function getRefLink(botName, prefix){
 
   let userKey = 'user' + user.id;
   user.chatId = chat.chatid;
-  Bot.setProperty('REFLIB_' + userKey, user, 'json');
+  Bot.setProperty(LIB_PREFIX + userKey, user, 'json');
   return aff_link;
 }
 
 function track(_trackOptions={}){
   let need_track = (message.split(' ')[0]=='/start')&&params;
   if(!need_track){
-    User.setProperty('REFLIB_old_user', true, 'boolean');
+    User.setProperty(LIB_PREFIX + 'old_user', true, 'boolean');
     return
   }
 
