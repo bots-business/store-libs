@@ -1,6 +1,6 @@
 let trackOptions = {};
 
-LIB_PREFIX = "REFLIB_";
+LIB_PREFIX = 'REFLIB_';
 
 function emitEvent(eventName, prms = {}){
   let evenFun = trackOptions[eventName]
