@@ -25,6 +25,9 @@ function saveRefListFor(userId){
 }
 
 function saveActiveUsers(userKey, refUser){
+  // topList is very slowly. Need upgrade here
+  return
+
   // Top active users - activityList
   let activityList = Bot.getProperty(LIB_PREFIX + 'activityList');
   if(!activityList){ activityList = {} }
@@ -88,6 +91,9 @@ function doSort(a, b){
 }
 
 function getTopList(top_count=10){
+  // topList is very slowly. Need upgrade here
+  return []
+
   var activityList = Bot.getProperty(LIB_PREFIX + 'activityList');
 
   let sortedList = [];
