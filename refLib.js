@@ -1,6 +1,6 @@
-let trackOptions = {};
-
 let LIB_PREFIX = 'REFLIB_';
+
+let trackOptions = {};
 
 function emitEvent(eventName, prms = {}){
   let evenFun = trackOptions[eventName]
@@ -116,7 +116,9 @@ function isDeepLink(){
   return (message.split(' ')[0]=='/start')&&params;
 }
 
-function track(trackOptions={}){
+function track(_trackOptions={}){
+  trackOptions = _trackOptions;
+
   if(isAlreadyAttracted() ){
     return emitEvent('onAlreadyAttracted');
   }
@@ -125,7 +127,7 @@ function track(trackOptions={}){
     return User.setProperty(LIB_PREFIX + 'old_user', true, 'boolean');
   }
 
-  trackRef(trackOptions);
+  trackRef();
 }
 
 publish({
