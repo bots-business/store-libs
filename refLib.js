@@ -11,16 +11,23 @@ function getProp(propName){
   return User.getProperty(LIB_PREFIX + propName);
 }
 
-function saveRefListFor(userId){
-  // save RefList - JSON
+function getJsonRefList(userId){
   let propName = LIB_PREFIX + 'refList' + userId;
   let refList = Bot.getProperty(propName);
 
   if(!refList){ refList = { count: 0, users:[] } };
+  return refList;
+}
+
+function saveRefListFor(userId){
+  // save RefList - JSON
+  let refList = getJsonRefList(userId);
   
   refList.count = refList.count + 1;
   
   refList.users.push(user);
+
+  let propName = LIB_PREFIX + 'refList' + userId;
   Bot.setProperty(propName, refList, 'json');
 }
 
@@ -74,7 +81,8 @@ function getTopList(top_count=10){
 }
 
 function getRefList(){
-  let refList = Bot.getProperty(LIB_PREFIX + 'refList' + user.id);
+  let refList = getJsonRefList(user.id)
+
   let result = []
   if((refList)&&(refList.count>0)){
     result = refList.users;
@@ -103,8 +111,9 @@ function getRefLink(botName, prefix){
     Bot.setProperty(LIB_PREFIX + 'refList_' + 'link_prefix', prefix, 'string');
   }
 
-  let aff_link='https://t.me/' + botName + 
-    '?start=' + prefix + user.id;
+  if(!botName){ botName = bot.name }
+
+  let aff_link = 'https://t.me/' + botName + '?start=' + prefix + user.id;
 
   let userKey = 'user' + user.id;
   user.chatId = chat.chatid;
