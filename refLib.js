@@ -7,8 +7,8 @@ function emitEvent(eventName, prms = {}){
   if(evenFun){ evenFun(prms) }
 }
 
-function getProperty(propName){
-  return Bot.getProperty(LIB_PREFIX + propName);
+function getProp(propName){
+  return User.getProperty(LIB_PREFIX + propName);
 }
 
 function saveRefListFor(userId){
@@ -45,9 +45,9 @@ function setReferralByAnotherUser(userId){
 }
 
 function isAlreadyAttracted(){
-  return User.getProperty(LIB_PREFIX + 'attracted_by_user') ||
-          User.getProperty(LIB_PREFIX + 'attracted_by_channel') ||
-          User.getProperty(LIB_PREFIX + 'old_user')
+  return getProp('attracted_by_user') ||
+          getProp('attracted_by_channel') ||
+          getProp('old_user')
 }
 
 function trackRef(){
@@ -94,11 +94,11 @@ function clearRefList(){
 }
 
 function attractedByUser(){
-  return User.getProperty(LIB_PREFIX + 'attracted_by_user')
+  return getProp('attracted_by_user')
 }
 
 function attractedByChannel(){
-  return User.getProperty(LIB_PREFIX + 'attracted_by_channel')
+  return getProp('attracted_by_channel')
 }
 
 function getRefLink(botName, prefix){
@@ -117,20 +117,20 @@ function getRefLink(botName, prefix){
   return aff_link;
 }
 
-function track(_trackOptions={}){
-  let need_track = (message.split(' ')[0]=='/start')&&params;
-  if(!need_track){
-    User.setProperty(LIB_PREFIX + 'old_user', true, 'boolean');
-    return
-  }
+function isDeepLink(){
+  return (message.split(' ')[0]=='/start')&&params;
+}
 
-  trackOptions = _trackOptions;
-
+function track(trackOptions={}){
   if(isAlreadyAttracted() ){
-    emitEvent('onAlreadyAttracted');
-  }else{
-    trackRef(trackOptions);
+    return emitEvent('onAlreadyAttracted');
   }
+
+  if(!isDeepLink()){
+    return User.setProperty(LIB_PREFIX + 'old_user', true, 'boolean');
+  }
+
+  trackRef(trackOptions);
 }
 
 publish({
