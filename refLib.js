@@ -68,11 +68,6 @@ function trackRef(){
   }
 }
 
-function doSort(a, b){
-  if(a.count>b.count) return -1;
-  if(a.count<b.count) return 1;
-}
-
 function getTopList(top_count=10){
   // TODO: make add quickly TopList
   return []
