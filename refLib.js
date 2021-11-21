@@ -91,9 +91,7 @@ function getRefList(){
 }
 
 function clearRefList(){
-  propName = LIB_PREFIX + 'refList' + user.id;
-  Bot.setProperty(propName, { users:[], count:0 }, 'json');
-  return true;
+  // TODO
 }
 
 function attractedByUser(){
@@ -113,12 +111,7 @@ function getRefLink(botName, prefix){
 
   if(!botName){ botName = bot.name }
 
-  let aff_link = 'https://t.me/' + botName + '?start=' + prefix + user.id;
-
-  let userKey = 'user' + user.id;
-  user.chatId = chat.chatid;
-  Bot.setProperty(LIB_PREFIX + userKey, user, 'json');
-  return aff_link;
+  return 'https://t.me/' + botName + '?start=' + prefix + user.id;
 }
 
 function isDeepLink(){
