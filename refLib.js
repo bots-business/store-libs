@@ -1,6 +1,6 @@
 let trackOptions = {};
 
-LIB_PREFIX = 'REFLIB_';
+let LIB_PREFIX = 'REFLIB_';
 
 function emitEvent(eventName, prms = {}){
   let evenFun = trackOptions[eventName]
@@ -24,22 +24,6 @@ function saveRefListFor(userId){
   Bot.setProperty(propName, refList, 'json');
 }
 
-function saveActiveUsers(userKey, refUser){
-  // topList is very slowly. Need upgrade here
-  return
-
-  // Top active users - activityList
-  let activityList = Bot.getProperty(LIB_PREFIX + 'activityList');
-  if(!activityList){ activityList = {} }
-  
-  let activity = activityList[userKey];
-  if(!activity){
-    activityList[userKey] = { count:0, username: refUser.username }
-  }
-  activityList[userKey].count+= 1;
-  Bot.setProperty(LIB_PREFIX + 'activityList', activityList, 'json');
-}
-
 function setReferralByAnotherUser(userId){
   let userKey = LIB_PREFIX + 'user' + userId;
   // it is for secure reason. User can pass any params to start!
@@ -54,7 +38,6 @@ function setReferralByAnotherUser(userId){
   }
 
   saveRefListFor(userId);
-  saveActiveUsers(userKey, refUser);
 
   // refUser - it is JSON
   User.setProperty(LIB_PREFIX + 'attracted_by_user', refUser, 'json');
@@ -91,39 +74,8 @@ function doSort(a, b){
 }
 
 function getTopList(top_count=10){
-  // topList is very slowly. Need upgrade here
+  // TODO: make add quickly TopList
   return []
-
-  var activityList = Bot.getProperty(LIB_PREFIX + 'activityList');
-
-  let sortedList = [];
-
-  let count, username
-
-  for(var key in activityList){
-    count =  activityList[key].count;
-    username = activityList[key].username;
-    sortedList.push(
-      { count: count, userKey: key, username:username }
-    );
-  }
-
-  sortedList.sort(doSort);
-
-  let result = [];
-
-  for(var i=0; i<(top_count-1); i++){
-    let item = sortedList[i];
-    if(!item){ break }
-    result.push(item);
-  }
-
-  return result;
-}
-
-function clearTopList(){
-  Bot.setProperty(LIB_PREFIX + 'activityList', {}, 'json');
-  return true;
 }
 
 function getRefList(){
