@@ -40,8 +40,7 @@ function setReferralByAnotherUser(userId){
 
   if(refUser.telegramid==user.telegramid){
     // own link was touched
-    emitEvent('onTouchOwnLink');
-    return;
+    return emitEvent('onTouchOwnLink');
   }
 
   saveRefListFor(userId);
