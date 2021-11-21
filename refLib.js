@@ -67,12 +67,12 @@ function trackRef(){
   if((arr[0]=='')&&(arr[1])){
     // it is affiliated by another user
     let userId=arr[1];
-    setReferralByAnotherUser(userId);
-  }else{
-    let channel = params;
-    User.setProperty(LIB_PREFIX + 'attracted_by_channel', channel, 'string');
-    emitEvent('onAttracted', channel);
+    return setReferralByAnotherUser(userId);
   }
+  
+  let channel = params;
+  User.setProperty(LIB_PREFIX + 'attracted_by_channel', channel, 'string');
+  emitEvent('onAttracted', channel);
 }
 
 function getTopList(top_count=10){
