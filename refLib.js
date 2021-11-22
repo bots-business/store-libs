@@ -4,7 +4,10 @@ let trackOptions = {};
 
 function emitEvent(eventName, prms = {}){
   let evenFun = trackOptions[eventName]
-  if(evenFun){ evenFun(prms) }
+  if(evenFun){
+    evenFun(prms)
+    return true;
+  }
 }
 
 function getProp(propName){
@@ -47,13 +50,12 @@ function setReferralByAnotherUser(userId){
 
   // refUser - it is JSON
   User.setProperty(LIB_PREFIX + 'attracted_by_user', refUser, 'json');
-  emitEvent('onAtractedByUser', refUser );
+  if(emitEvent('onAtractedByUser', refUser )){ return }
+  emitEvent('onAtracted', refUser)
 }
 
 function isAlreadyAttracted(){
-  return getProp('attracted_by_user') ||
-          getProp('attracted_by_channel') ||
-          getProp('old_user')
+  return getProp('attracted_by_user') || getProp('old_user')
 }
 
 function trackRef(){
@@ -68,10 +70,6 @@ function trackRef(){
     let userId=arr[1];
     return setReferralByAnotherUser(userId);
   }
-  
-  let channel = params;
-  User.setProperty(LIB_PREFIX + 'attracted_by_channel', channel, 'string');
-  emitEvent('onAttracted', channel);
 }
 
 function getTopList(top_count=10){
@@ -98,6 +96,7 @@ function attractedByUser(){
 }
 
 function attractedByChannel(){
+  // DEPRECATED - need remove all props
   return getProp('attracted_by_channel')
 }
 
