@@ -65,8 +65,10 @@ function setReferral(userId){
   let userKey = LIB_PREFIX + 'user' + userId;
   let refUser = Bot.getProperty(userKey);
 
+  if(!refUser){ return }
+
   User.setProperty(LIB_PREFIX + 'attracted_by_user', refUser, 'json');
-  if(emitEvent('onAtractedByUser', refUser )){ return }
+  if(emitEvent('onAtractedByUser', refUser )){ return true }   // Deprecated
   emitEvent('onAtracted', refUser)
 }
 
@@ -131,11 +133,11 @@ function track(_trackOptions={}){
     return emitEvent('onAlreadyAttracted');
   }
 
-  if(!isDeepLink()){
-    return User.setProperty(LIB_PREFIX + 'old_user', true, 'boolean');
+  if(isDeepLink()&&trackRef()){
+    return
   }
 
-  trackRef();
+  return User.setProperty(LIB_PREFIX + 'old_user', true, 'boolean');
 }
 
 publish({
