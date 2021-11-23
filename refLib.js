@@ -22,25 +22,34 @@ function getJsonRefList(userId){
   return refList.users;
 }
 
-function getRefList(userId){
+function getList(userId){
   let listName = LIB_PREFIX + 'refList' + userId;
-  let refList = new List({ name: listName, user_id: userId })
+  return new List({ name: listName, user_id: userId })
+}
 
-  list.recount()
+function getRefList(userId){
+  if(!userId){ userId = user.id }
 
-  if(refList.total()==0){
+  let refList = getList(userId)
+
+  if(!refList.exist){
     return getJsonRefList(userId)
   }
 
-  return list.getUsers()
+  refList.recount()
+  return refList.getUsers()
 }
 
 function addFriendFor(userId){
   // save RefList
-  let listName = LIB_PREFIX + 'refList' + userId;
-  let refList = new List({ name: listName, user_id: userId })
+  let refList = getList(userId)
+  if(!refList.exist){ refList.create() }
 
   refList.addUser(user);
+}
+
+function addToTopList(){
+
 }
 
 function setReferral(userId){
@@ -85,13 +94,13 @@ function clearRefList(){
   // TODO
 }
 
-function attractedByUser(){
-  return getProp('attracted_by_user')
-}
-
-function attractedByChannel(){
-  // DEPRECATED - need remove all props
-  return getProp('attracted_by_channel')
+function getAttractedBy(){
+  var prop = getProp('attracted_by_user');
+  if(prop){
+    // support for old code
+    prop.chatId = prop.telegramid;
+  }
+  return prop;
 }
 
 function getRefLink(botName, prefix){
@@ -103,7 +112,6 @@ function getRefLink(botName, prefix){
 
   if(!botName){ botName = bot.name }
 
-  user.chatId = chat.chatid;
   let userKey = LIB_PREFIX + 'user' + user.id;
   Bot.setProperty(userKey, user, 'json');
 
@@ -129,6 +137,13 @@ function track(_trackOptions={}){
 }
 
 publish({
+  getLink: getRefLink,
+  track: track,
+  getRefList: getRefList,
+  getTopList: getTopList,
+  getAttractedBy: getAttractedBy,
+  
+  // DEPRECATED
   currentUser:{
     getRefLink: getRefLink,
     track: track,
@@ -136,11 +151,9 @@ publish({
       get: getRefList,
       clear: clearRefList
     },
-    attractedByUser: attractedByUser,
-    attractedByChannel: attractedByChannel
+    attractedByUser: getAttractedBy,
   },
   topList:{
-    get: getTopList,
-    clear: clearTopList
+    get: getTopList
   }
 })
