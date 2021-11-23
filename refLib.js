@@ -27,6 +27,10 @@ function getList(userId){
   return new List({ name: listName, user_id: userId })
 }
 
+function getTopList(){
+  return new List({ name: LIB_PREFIX + 'TopList' })
+}
+
 function getRefList(userId){
   if(!userId){ userId = user.id }
 
@@ -48,12 +52,15 @@ function addFriendFor(userId){
   refList.addUser(user);
 }
 
-function addToTopList(){
-
+function addToTopList(userId){
+  // var topList = getTopList();
+  // TODO
 }
 
 function setReferral(userId){
   addFriendFor(userId);
+  // TODO
+  // addToTopList(userID)
 
   let userKey = LIB_PREFIX + 'user' + userId;
   let refUser = Bot.getProperty(userKey);
@@ -83,11 +90,6 @@ function trackRef(){
 
   // it is affiliated by another user
   return setReferral(userId);
-}
-
-function getTopList(top_count=10){
-  // TODO: make add quickly TopList
-  return []
 }
 
 function clearRefList(){
