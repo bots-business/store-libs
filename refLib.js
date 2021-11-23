@@ -18,37 +18,37 @@ function getJsonRefList(userId){
   let propName = LIB_PREFIX + 'refList' + userId;
   let refList = Bot.getProperty(propName);
 
-  if(!refList){ refList = { count: 0, users:[] } };
-  return refList;
+  if(!refList){ refList = { users:[] } };
+  return refList.users;
 }
 
-function saveRefListFor(userId){
-  // save RefList - JSON
-  let refList = getJsonRefList(userId);
-  
-  refList.count = refList.count + 1;
-  
-  refList.users.push(user);
+function getRefList(userId){
+  let listName = LIB_PREFIX + 'refList' + userId;
+  let refList = new List({ name: listName, user_id: userId })
 
-  let propName = LIB_PREFIX + 'refList' + userId;
-  Bot.setProperty(propName, refList, 'json');
-}
+  list.recount()
 
-function setReferralByAnotherUser(userId){
-  let userKey = LIB_PREFIX + 'user' + userId;
-  // it is for secure reason. User can pass any params to start!
-  let refUser = Bot.getProperty(userKey);
-
-  if(!refUser){ return }
-
-  if(refUser.telegramid==user.telegramid){
-    // own link was touched
-    return emitEvent('onTouchOwnLink');
+  if(refList.total()==0){
+    return getJsonRefList(userId)
   }
 
-  saveRefListFor(userId);
+  return list.getUsers()
+}
 
-  // refUser - it is JSON
+function addFriendFor(userId){
+  // save RefList
+  let listName = LIB_PREFIX + 'refList' + userId;
+  let refList = new List({ name: listName, user_id: userId })
+
+  refList.addUser(user);
+}
+
+function setReferral(userId){
+  addFriendFor(userId);
+
+  let userKey = LIB_PREFIX + 'user' + userId;
+  let refUser = Bot.getProperty(userKey);
+
   User.setProperty(LIB_PREFIX + 'attracted_by_user', refUser, 'json');
   if(emitEvent('onAtractedByUser', refUser )){ return }
   emitEvent('onAtracted', refUser)
@@ -65,26 +65,20 @@ function trackRef(){
   if(uprefix){ prefix = uprefix  }
 
   let arr = params.split(prefix);
-  if((arr[0]=='')&&(arr[1])){
-    // it is affiliated by another user
-    let userId=arr[1];
-    return setReferralByAnotherUser(userId);
-  }
+  if(arr[0]!=''){ return }
+  let userId=arr[1];
+  if(!userId){ return }
+
+  // own link was touched
+  if(userId==user.id){ return emitEvent('onTouchOwnLink') }
+
+  // it is affiliated by another user
+  return setReferral(userId);
 }
 
 function getTopList(top_count=10){
   // TODO: make add quickly TopList
   return []
-}
-
-function getRefList(){
-  let refList = getJsonRefList(user.id)
-
-  let result = []
-  if((refList)&&(refList.count>0)){
-    result = refList.users;
-  }
-  return result;
 }
 
 function clearRefList(){
@@ -108,6 +102,10 @@ function getRefLink(botName, prefix){
   }
 
   if(!botName){ botName = bot.name }
+
+  user.chatId = chat.chatid;
+  let userKey = LIB_PREFIX + 'user' + user.id;
+  Bot.setProperty(userKey, user, 'json');
 
   return 'https://t.me/' + botName + '?start=' + prefix + user.id;
 }
