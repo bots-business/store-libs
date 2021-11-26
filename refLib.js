@@ -40,7 +40,6 @@ function getRefList(userId){
     return getJsonRefList(userId)
   }
 
-  refList.recount()
   return refList.getUsers()
 }
 
@@ -69,7 +68,7 @@ function setReferral(userId){
 
   User.setProperty(LIB_PREFIX + 'attracted_by_user', refUser, 'json');
   if(emitEvent('onAtractedByUser', refUser )){ return true }   // Deprecated
-  emitEvent('onAtracted', refUser)
+  emitEvent('onAttracted', refUser)
 }
 
 function isAlreadyAttracted(){
