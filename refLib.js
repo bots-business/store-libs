@@ -15,7 +15,7 @@ function getProp(propName){
 }
 
 function getJsonRefList(userId){
-  let propName = LIB_PREFIX + 'refList' + userId;
+  let propName = LIB_PREFIX + 'refList' + String(userId);
   let refList = Bot.getProperty(propName);
 
   if(!refList){ refList = { users:[] } };
@@ -23,12 +23,14 @@ function getJsonRefList(userId){
 }
 
 function getList(userId){
-  let listName = LIB_PREFIX + 'refList' + userId;
+  let listName = LIB_PREFIX + 'refList' + String(userId);
   return new List({ name: listName, user_id: userId })
 }
 
 function getTopList(){
-  return new List({ name: LIB_PREFIX + 'TopList' })
+  var list = new List({ name: LIB_PREFIX + 'TopList' });
+  if(!list.exist){ list.create() }
+  return list;
 }
 
 function getRefList(userId){
@@ -51,22 +53,36 @@ function addFriendFor(userId){
   refList.addUser(user);
 }
 
-function addToTopList(userId){
-  // var topList = getTopList();
-  // TODO
+function updateRefsCountFor(userId){
+  var topList = getTopList();
+  userId = parseInt(userId);
+
+  var refsCount =   User.getProperty({
+    name: "refsCount",
+    user_id: userId
+  });
+
+  if(!refsCount){ refsCount = 0 }
+
+  User.setProperty({
+    name: LIB_PREFIX + "refsCount",
+    value: refsCount + 1,
+    list: topList,
+    user_id: userId
+  });
 }
 
 function setReferral(userId){
   addFriendFor(userId);
-  // TODO
-  // addToTopList(userID)
+  updateRefsCountFor(userId);
 
-  let userKey = LIB_PREFIX + 'user' + userId;
+  let userKey = LIB_PREFIX + 'user' + String(userId);
   let refUser = Bot.getProperty(userKey);
 
   if(!refUser){ return }
 
   User.setProperty(LIB_PREFIX + 'attracted_by_user', refUser, 'json');
+  
   if(emitEvent('onAtractedByUser', refUser )){ return true }   // Deprecated
   emitEvent('onAttracted', refUser)
 }
@@ -85,6 +101,7 @@ function trackRef(){
   if(arr[0]!=''){ return }
   let userId=arr[1];
   if(!userId){ return }
+  userId = parseInt(userId)
 
   // own link was touched
   if(userId==user.id){ return emitEvent('onTouchOwnLink') }
