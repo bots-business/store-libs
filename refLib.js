@@ -58,14 +58,14 @@ function updateRefsCountFor(userId){
   userId = parseInt(userId);
 
   var refsCount =   User.getProperty({
-    name: "refsCount",
+    name: 'refsCount',
     user_id: userId
   });
 
   if(!refsCount){ refsCount = 0 }
 
   User.setProperty({
-    name: LIB_PREFIX + "refsCount",
+    name: LIB_PREFIX + 'refsCount',
     value: refsCount + 1,
     list: topList,
     user_id: userId
