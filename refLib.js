@@ -14,14 +14,6 @@ function getProp(propName){
   return User.getProperty(LIB_PREFIX + propName);
 }
 
-function getJsonRefList(userId){
-  let propName = LIB_PREFIX + 'refList' + String(userId);
-  let refList = Bot.getProperty(propName);
-
-  if(!refList){ refList = { users:[] } };
-  return refList.users;
-}
-
 function getList(userId){
   let listName = LIB_PREFIX + 'refList' + String(userId);
   return new List({ name: listName, user_id: userId })
@@ -36,13 +28,8 @@ function getTopList(){
 function getRefList(userId){
   if(!userId){ userId = user.id }
 
-  let refList = getList(userId)
-
-  if(!refList.exist){
-    return getJsonRefList(userId)
-  }
-
-  return refList.getUsers()
+  let refList = getList(userId);
+  return refList;
 }
 
 function addFriendFor(userId){
@@ -57,8 +44,8 @@ function updateRefsCountFor(userId){
   var topList = getTopList();
   userId = parseInt(userId);
 
-  var refsCount =   User.getProperty({
-    name: 'refsCount',
+  var refsCount = User.getProperty({
+    name: LIB_PREFIX + 'refsCount',
     user_id: userId
   });
 
@@ -132,6 +119,8 @@ function getRefLink(botName, prefix){
 
   if(!botName){ botName = bot.name }
 
+  // TODO: we need something like User.get({ user_id, xxx, bot_id: yyy })
+  // because this data in database already and we don't need this bot prop 
   let userKey = LIB_PREFIX + 'user' + user.id;
   Bot.setProperty(userKey, user, 'json');
 
