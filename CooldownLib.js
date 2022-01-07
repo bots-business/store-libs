@@ -15,8 +15,10 @@ function resetCooldown(){
 
 function setupCooldown(time){
   if(curCooldown.growth.isEnabled()){
-     // already setupped
-     return
+    if(curCooldown.growth.info().max == time){
+      // already setuped
+      return
+    }
   }
   
   curCooldown.set(time);
