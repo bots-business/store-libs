@@ -32,6 +32,17 @@ function getRefList(userId){
   return refList;
 }
 
+function getRefCount(userId){
+  if(!userId){ userId = user.id }
+  var refsCount = User.getProperty({
+    name: LIB_PREFIX + 'refsCount',
+    user_id: userId
+  });
+
+  if(!refsCount){ refsCount = 0 }  
+  return refsCount;
+}
+
 function addFriendFor(userId){
   // save RefList
   let refList = getList(userId)
@@ -148,6 +159,7 @@ function track(_trackOptions={}){
 publish({
   getLink: getRefLink,
   track: track,
+  getRefCount: getRefCount,
   getRefList: getRefList,
   getTopList: getTopList,
   getAttractedBy: getAttractedBy,
