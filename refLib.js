@@ -40,8 +40,8 @@ function addFriendFor(userId){
   refList.addUser(user);
 }
 
-function updateRefsCountFor(userId){
-  var topList = getTopList();
+function getRefCount(userId){
+  if(!userId){ userId = user.id }
   userId = parseInt(userId);
 
   var refsCount = User.getProperty({
@@ -50,6 +50,13 @@ function updateRefsCountFor(userId){
   });
 
   if(!refsCount){ refsCount = 0 }
+  return refsCount;
+}
+
+function updateRefsCountFor(userId){
+  var topList = getTopList();
+
+  var refsCount = getRefCount(userId);
 
   User.setProperty({
     name: LIB_PREFIX + 'refsCount',
@@ -149,6 +156,7 @@ publish({
   getLink: getRefLink,
   track: track,
   getRefList: getRefList,
+  getRefCount: getRefCount,
   getTopList: getTopList,
   getAttractedBy: getAttractedBy,
   
