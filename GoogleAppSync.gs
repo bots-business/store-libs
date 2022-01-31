@@ -48,7 +48,6 @@ function setBJSData(data){
   bot = data.bot;
   params = data.params;
   options = data.options;
-  statistics = data.statistics;
   admins = data.admins;
   owner = data.owner;
   iteration_quota = data.iteration_quota;
@@ -60,6 +59,8 @@ function setBJSData(data){
   cookies = data.cookies;
   http_headers = data.http_header;
   user = data.user;
+  command = command;
+  BB_API_URL = BB_API_URL;
 }
 
 function sendMail(data, result){

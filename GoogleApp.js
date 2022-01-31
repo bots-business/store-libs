@@ -35,10 +35,10 @@ function isOptionsCorrect(options){
   if(typeof(options)!="object"){
     throwError("on run - param must be object")
   }
-  if(!options.func){
+  if(!options.code){
     throwError("on run - need passed func in params")
   }
-  if(!options.func.name){
+  if(!options.code.name){
     throwError("on run - func must be function with name")
   }
 }
@@ -75,7 +75,6 @@ function getData(){
     bot: bot,
     params: params,
     options: options,
-    statistics: statistics,
     admins: admins,
     owner: owner,
     iteration_quota: iteration_quota,
@@ -85,7 +84,9 @@ function getData(){
     content: content,
     http_status: http_status,
     cookies: cookies,
-    http_headers: http_headers
+    http_headers: http_headers,
+    command: command,
+    BB_API_URL: BB_API_URL
  }
 }
 
