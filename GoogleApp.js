@@ -36,10 +36,10 @@ function isOptionsCorrect(options){
     throwError("on run - param must be object")
   }
   if(!options.code){
-    throwError("on run - need passed func in params")
+    throwError("on run - need passed code in params")
   }
   if(!options.code.name){
-    throwError("on run - func must be function with name")
+    throwError("on run - code must be function with name")
   }
 }
 
@@ -48,7 +48,7 @@ function run(options){
   isOptionsCorrect(options)
 
   var webhookUrl = getWebhookUrl(options.debug);
-  var func = options.func;
+  var func = options.code;
 
   HTTP.post( {
     url: getUrl() + "?hl=en",
