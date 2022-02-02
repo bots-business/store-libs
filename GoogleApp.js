@@ -16,6 +16,7 @@ function isWebhookLibInstalled(){
 function getWebhookUrl(isDebug){
   var cmd = libPrefix + "onRun";
   if(isDebug){
+    Bot.sendMessage(libPrefix + " debug mode: ON");
     cmd = libPrefix + "onDebugRun"
   }
   return Libs.Webhooks.getUrlFor({

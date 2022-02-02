@@ -1,4 +1,4 @@
-// Bots.Business 2020
+// Bots.Business 2022
 // Use this code to connect Bots.Business BJS with Google App Script
 // https://help.bots.business/libs/googleapp
 
@@ -26,7 +26,7 @@ function run(data){
     if(is_debug){ sendMail(data, result) }
   }
   
-  if(is_debug&&(result=={})){ sendMail(data, result) }
+  if(is_debug){ sendMail(data, result) }
   
   
   result = { result: result, onRun: data.onRun};
