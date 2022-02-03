@@ -9,7 +9,6 @@ function emitEvent(eventName, prms = {}){
     return true;
   }
 }
-
 function getProp(propName){
   return User.getProperty(LIB_PREFIX + propName);
 }
