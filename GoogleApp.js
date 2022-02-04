@@ -16,7 +16,7 @@ function isWebhookLibInstalled(){
 function getWebhookUrl(isDebug){
   var cmd = libPrefix + "onRun";
   if(isDebug){
-    Bot.sendMessage(libPrefix + " debug mode: ON");
+    Bot.sendMessage("GoogleAppLib: Debug mode - ON");
     cmd = libPrefix + "onDebugRun"
   }
   return Libs.Webhooks.getUrlFor({
@@ -50,9 +50,17 @@ function run(options){
 
   var webhookUrl = getWebhookUrl(options.debug);
   var func = options.code;
+  var url = getUrl() + "?hl=en";
+
+  if(options.debug){
+    Bot.sendMessage(
+      "GoogleAppLib: post data to [url](" + url + ")." +
+      "\n\nYou can open this link only on incognito mode without Google autorization"
+    );
+  }
 
   HTTP.post( {
-    url: getUrl() + "?hl=en",
+    url: url,
     // success: "" - no success 
     error: libPrefix + "onHttpError",
     body: {
@@ -103,8 +111,12 @@ function inspectError(json){
 }
 
 function parseContent(){
+  if(typeof(content)=="object"){
+    return content
+  }
+
   try{
-    return json = JSON.parse(content);
+    return JSON.parse(content);
   }catch(e){
     throwError("Error on content parsing: " + content)
   }
@@ -113,7 +125,7 @@ function parseContent(){
 function doUserOnRun(data){
   if(!data.onRun){ return }
   if(data.onRun==""){ return }
-  Bot.run({ command: data.onRun, options: data.result, run_after: 1 })
+  Bot.run({ command: data.onRun, options: data.result })
 }
 
 function onRun(){
