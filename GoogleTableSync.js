@@ -109,8 +109,6 @@ function GACode() {
   }
 
   function syncData() {
-    openSheet();
-
     if (updateExistData()) {
       suncResult.updatedCount += 1
       return
@@ -130,7 +128,60 @@ function GACode() {
     return suncResult;
   }
 
-  return syncDatas();
+  // READING
+  function buildData(headers, item){
+    var new_item = {};
+    for(var key in item){
+      new_item[headers[key]] = item[key]
+    }
+    return new_item;
+  }
+  
+  function findData(data, rows){
+    var item = null;
+    for(var indRow in rows){
+      var row = rows[indRow]
+      // find row by index
+      for(var cellInd in row){
+        var key = data[options.gaTableSyncLib.index];
+        var tableValue = row[cellInd];
+        if (tableValue == key) {
+          item = row;
+          break;
+        }
+      }
+      if(item){
+        return buildData(headers, item);
+      }
+    }
+  }
+  
+  function readData(){
+    var rows = sheet.getDataRange().getValues()
+    var result = [];
+  
+    // get headers
+    headers = rows[0];
+  
+    datas.forEach(function (data) {
+      var item = findData(data, rows);
+      if(item){
+        result.push(item)
+      }
+    })
+  
+    return result;
+  }
+  // end READING
+
+  openSheet();
+  
+  if(options.gaTableSyncLib.isRead){
+    return readData()
+  }else{
+    return syncDatas();
+  }
+  
   // end GACode
 }
 
@@ -157,9 +208,10 @@ function checkErrors(syncOptions) {
   }
 }
 
-function sync(syncOptions) {
+function sync(syncOptions, reading) {
   checkErrors(syncOptions);
   options.gaTableSyncLib = syncOptions;
+  options.gaTableSyncLib.isRead = reading;
 
   Libs.GoogleApp.run({
     code: GACode, // Function with Google App code
@@ -169,44 +221,11 @@ function sync(syncOptions) {
   })
 }
 
+function read(readOptions){
+  sync(readOptions, true)
+}
+
 publish({
-  sync: sync
+  sync: sync,
+  read: read
 })
-
-
-
-
-
-
-
-syncOptions = {
-  tableID: "YOUR Google Table ID",
-  sheetName: "Users",
-  index: "tgid",
-  datas = [],
-  onRun: "/onRun",
-
-  // for debug
-  email: "hello@bots.business",
-  debug: true
-}
-
-// save user data to Google Table with balance "100"
-syncOptions.datas[0] = {
-  tgid: user.tgid,
-  balance: 100,
-  any_other_key: "any value"
-
-}
-
-Libs.GoogleSheetSync.sync(syncOptions)
-
-// and update balance again for this user
-syncOptions.datas[0] = {
-  tgid: user.tgid,
-  balance: 250
-}
-
-Libs.GoogleSheetSync.sync(syncOptions)
-
-
