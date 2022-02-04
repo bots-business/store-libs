@@ -67,24 +67,14 @@ function GACode() {
   }
 
   function updateExistData() {
-    var values = sheet.getDataRange().getValues()
-
-    var isStart = true
-
+    var rows = sheet.getDataRange().getValues()
     var alreadyUpdated = false
 
     // get headers
+    headers = rows[0];
 
-    var curRowIndex = 1
-    values.forEach(function (row) {
-      // get headers
-      if (isStart) {
-        isStart = false
-        if (row.length != 1 && row[0] != "") {
-          headers = row
-        }
-      }
-
+    var curRowIndex = 1;
+    rows.forEach(function (row) {
       // find row by index
       for(var cellInd in row){
         if (row[cellInd] == data[options.gaTableSyncLib.index]) {
