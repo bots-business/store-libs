@@ -20,15 +20,19 @@ function run(data){
   var result = {};
   
   try {
-     result = eval(data.code);
+    var code = data.code;
+    result = eval(code);
   }catch (e){
     result.error = { name: e.name, message: e.message, stack: e.stack, code: data.code}
     if(is_debug){ sendMail(data, result) }
   }
   
+  if(!is_debug){
+    saveData(data, result);
+  }
+
   if(is_debug){ sendMail(data, result) }
-  
-  
+
   result = { result: result, onRun: data.onRun};
   
   callWebhook(result, data);
@@ -37,9 +41,23 @@ function run(data){
 //this is a function that fires when the webapp receives a POST request
 function doPost(e){
   var data = e.postData.contents;
-  saveData(data);
-  
   run(data);
+
+  return HtmlService.createHtmlOutput("BBGoogleAppLib:ok");
+}
+
+//this is a function that fires when the webapp receives a GET request
+function doGet(e){
+  var lastData = loadData();
+  var lastResult = CacheService.getScriptCache().get("LastResult");
+
+  return HtmlService.createHtmlOutput(
+    "<h1>This is BB Google App Lib connector</h1>" +
+    "<h2>Last data:</h2>" +
+    "<br>" + lastData +
+    "<h2>Last result:</h2>" +
+    lastResult
+  )
 }
 
 function setBJSData(data){  
@@ -59,8 +77,8 @@ function setBJSData(data){
   cookies = data.cookies;
   http_headers = data.http_header;
   user = data.user;
-  command = command;
-  BB_API_URL = BB_API_URL;
+  command = data.command;
+  BB_API_URL = data.BB_API_URL;
 }
 
 function sendMail(data, result){
@@ -87,17 +105,13 @@ function sendWebhookErrorMail(data, result){
   });
 }
 
-function saveData(data){
-  CacheService.getScriptCache().put("LastData", data); 
+function saveData(data, result){
+  CacheService.getScriptCache().put("LastData", JSON.stringify(data));
+  CacheService.getScriptCache().put("LastResult", JSON.stringify(result));
 }
 
 function loadData(){
   return CacheService.getScriptCache().get("LastData");
-}
-
-function doGet(e){
-  var html = response.getContentText();
-  return HtmlService.createHtmlOutput("<h1>Google App Sync: installed</h1>");
 }
 
 function callWebhook(result, data){
