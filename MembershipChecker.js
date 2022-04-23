@@ -270,4 +270,4 @@ on(LIB_PREFIX + "checkMemberships", checkMemberships);
 on(LIB_PREFIX + "checkMembership", checkMembership);
 on(LIB_PREFIX + "onCheckMembership", onCheckMembership);
 on(LIB_PREFIX + "onError", onError);
-on("*", handleAll );
+on("@", handleAll );
