@@ -102,7 +102,6 @@ function verifyAccess(){
 
 publish({
   setup: setup,
-  isAdmin: isAdmin
+  isAdmin: isAdmin,
+  verifyAccess: verifyAccess
 });
-
-on("@", verifyAccess);
