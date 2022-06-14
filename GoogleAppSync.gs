@@ -46,6 +46,15 @@ function doPost(e){
   return HtmlService.createHtmlOutput("BBGoogleAppLib:ok");
 }
 
+function getFormatted(json){
+  try{
+    json = JSON.parse(json);
+    return  "<pre>" + JSON.stringify(json, null, 4) + "</pre>";
+  }catch{
+    return String(json)
+  }
+}
+
 //this is a function that fires when the webapp receives a GET request
 function doGet(e){
   var lastData = loadData();
@@ -53,10 +62,10 @@ function doGet(e){
 
   return HtmlService.createHtmlOutput(
     "<h1>This is BB Google App Lib connector</h1>" +
-    "<h2>Last data:</h2>" +
-    "<br>" + lastData +
     "<h2>Last result:</h2>" +
-    lastResult
+      getFormatted(lastResult) +
+    "<h2>Last data:</h2>" +
+    "<br>" + getFormatted(lastData)
   )
 }
 
