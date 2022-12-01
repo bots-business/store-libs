@@ -6,14 +6,14 @@ function getCredential(options, prms){
     Bot.getProperty( libPrefix + options.coin.toLowerCase() + 'apikey')
   );
   
-  let pin = "";
+  let pin = '';
   if(options.method.indexOf('withdraw') + 1) {
 
     pin = (prms.pin ? prms.pin :
       Bot.getProperty( libPrefix + 'secretpin')
     )
 
-    if(pin!=""){ pin = "&pin=" + pin }
+    if(pin!=''){ pin = '&pin=' + pin }
   }
   return 'api_key=' + apiKey + pin;
 }
@@ -24,7 +24,7 @@ function apiGet(options = {}, prms){
   let callbacks = getCallbacks(prms, 'on_' + options.method);
   let credential = getCredential(options, prms);
 
-  let url = API_URL + options.method + "?" + credential + 
+  let url = API_URL + options.method + '?' + credential + 
     '&' + options.query;
   
   HTTP.get( {
@@ -96,7 +96,7 @@ function doApiGetFor(coin, method, prms){
   let i = 0;
   let keys = Object.keys(prms);
   for(let ind in prms){
-    query+= keys[i] + "=" + prms[ind] + "&" 
+    query+= keys[i] + '=' + prms[ind] + '&' 
     i+=1;
   }
 
@@ -104,7 +104,7 @@ function doApiGetFor(coin, method, prms){
 }
 
 function getApiFunctions(coin, funcs_names){
-  result = {};
+  let result = {};
   let funcName;
   
   for(let ind in funcs_names){

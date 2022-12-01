@@ -1,4 +1,4 @@
-libPrefix = 'LibQiwiPayment_';
+let libPrefix = 'LibQiwiPayment_';
 
 function getPaymentLink(options = {}){
   return 'https://qiwi.com/payment/form/99?' + 
@@ -72,6 +72,7 @@ function acceptPayment(options){
     success: libPrefix + 'onAcceptPayment ' + 
               options.comment + ' '  +  options.onSuccess + 
               ' ' + options.onNoPaymentYet,
+    error: options.onError,
     headers: headers
   } )
 }

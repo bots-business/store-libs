@@ -10,7 +10,12 @@ function getNameFor(member){
 }
 
 function getLinkFor(member){
-  return "[" + getNameFor(member) + "](tg://user?id=" + member.telegramid + ")";
+  let name = getNameFor(member);
+  if(name==""){
+    name = member.telegramid;
+  }
+
+  return "[" + name + "](tg://user?id=" + member.telegramid + ")";
 }
 
 publish({

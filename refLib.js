@@ -1,173 +1,166 @@
+let LIB_PREFIX = 'REFLIB_';
+
 let trackOptions = {};
 
 function emitEvent(eventName, prms = {}){
   let evenFun = trackOptions[eventName]
-  if(evenFun){ evenFun(prms) }
-}
-
-function saveRefListFor(userId){
-  // save RefList - JSON
-  propName = 'REFLIB_refList' + userId;
-  refList = Bot.getProperty(propName);
-
-  if(!refList){ refList = { count: 0, users:[] } };
-  
-  refList.count = refList.count + 1;
-  
-  refList.users.push(user);
-  Bot.setProperty(propName, refList, 'json');
-}
-
-function saveActiveUsers(userKey, refUser){
-  // Top active users - activityList
-  let activityList = Bot.getProperty('REFLIB_activityList');
-  if(!activityList){ activityList = {} }
-  
-  let activity = activityList[userKey];
-  if(!activity){
-    activityList[userKey] = { count:0, username: refUser.username }
+  if(evenFun){
+    evenFun(prms)
+    return true;
   }
-  activityList[userKey].count+= 1;
-  Bot.setProperty('REFLIB_activityList', activityList, 'json');
 }
 
-function setReferralByAnotherUser(userId){
-  let userKey = 'REFLIB_user' + userId;
-  // it is for secure reason. User can pass any params to start!
+function getProp(propName){
+  return User.getProperty(LIB_PREFIX + propName);
+}
+
+function getList(userId){
+  let listName = LIB_PREFIX + 'refList' + String(userId);
+  return new List({ name: listName, user_id: userId })
+}
+
+function getTopList(){
+  var list = new List({ name: LIB_PREFIX + 'TopList' });
+  if(!list.exist){ list.create() }
+  return list;
+}
+
+function getRefList(userId){
+  if(!userId){ userId = user.id }
+
+  let refList = getList(userId);
+  return refList;
+}
+
+function addFriendFor(userId){
+  // save RefList
+  let refList = getList(userId)
+  if(!refList.exist){ refList.create() }
+
+  refList.addUser(user);
+}
+
+function getRefCount(userId){
+  if(!userId){ userId = user.id }
+  userId = parseInt(userId);
+
+  var refsCount = User.getProperty({
+    name: LIB_PREFIX + 'refsCount',
+    user_id: userId
+  });
+
+  if(!refsCount){ refsCount = 0 }
+  return refsCount;
+}
+
+function updateRefsCountFor(userId){
+  var topList = getTopList();
+
+  var refsCount = getRefCount(userId);
+
+  User.setProperty({
+    name: LIB_PREFIX + 'refsCount',
+    value: refsCount + 1,
+    list: topList,
+    user_id: userId
+  });
+}
+
+function setReferral(userId){
+  addFriendFor(userId);
+  updateRefsCountFor(userId);
+
+  let userKey = LIB_PREFIX + 'user' + String(userId);
   let refUser = Bot.getProperty(userKey);
 
   if(!refUser){ return }
 
-  if(refUser.telegramid==user.telegramid){
-    // own link was touched
-    emitEvent('onTouchOwnLink');
-    return;
-  }
-
-  saveRefListFor(userId);
-  saveActiveUsers(userKey, refUser);
-
-  // refUser - it is JSON
-  User.setProperty('REFLIB_attracted_by_user', refUser, 'json');
-  emitEvent('onAtractedByUser', refUser );
+  User.setProperty(LIB_PREFIX + 'attracted_by_user', refUser, 'json');
+  
+  if(emitEvent('onAtractedByUser', refUser )){ return true }   // Deprecated
+  emitEvent('onAttracted', refUser)
 }
 
 function isAlreadyAttracted(){
-  return User.getProperty('REFLIB_attracted_by_user') ||
-          User.getProperty('REFLIB_attracted_by_channel') ||
-          User.getProperty('REFLIB_old_user')
+  return getProp('attracted_by_user') || getProp('old_user')
 }
 
 function trackRef(){
   let prefix = 'user'
 
-  let uprefix = Bot.getProperty("REFLIB_refList_link_prefix");
+  let uprefix = Bot.getProperty(LIB_PREFIX + 'refList_link_prefix');
   if(uprefix){ prefix = uprefix  }
 
   let arr = params.split(prefix);
-  if((arr[0]=='')&&(arr[1])){
-    // it is affiliated by another user
-    let userId=arr[1];
-    setReferralByAnotherUser(userId);
-  }else{
-    let channel = params;
-    User.setProperty('REFLIB_attracted_by_channel', channel, 'string');
-    emitEvent('onAttracted', channel);
-  }
-}
+  if(arr[0]!=''){ return }
+  let userId=arr[1];
+  if(!userId){ return }
+  userId = parseInt(userId)
 
-function doSort(a, b){
-  if(a.count>b.count) return -1;
-  if(a.count<b.count) return 1;
-}
+  // own link was touched
+  if(userId==user.id){ return emitEvent('onTouchOwnLink') }
 
-function getTopList(top_count=10){
-  activityList = Bot.getProperty('REFLIB_activityList');
-
-  let sortedList = [];
-
-  for(key in activityList){
-    count =  activityList[key].count;
-    username = activityList[key].username;
-    sortedList.push(
-      { count: count, userKey: key, username:username }
-    );
-  }
-
-  sortedList.sort(doSort);
-
-  result = [];
-
-  for(var i=0; i<(top_count-1); i++){
-    let item = sortedList[i];
-    if(!item){ break }
-    result.push(item);
-  }
-
-  return result;
-}
-
-function clearTopList(){
-  Bot.setProperty('REFLIB_activityList', {}, 'json');
-  return true;
-}
-
-function getRefList(){
-  let refList = Bot.getProperty('REFLIB_refList' + user.id);
-  result = []
-  if((refList)&&(refList.count>0)){
-    result = refList.users;
-  }
-  return result;
+  // it is affiliated by another user
+  return setReferral(userId);
 }
 
 function clearRefList(){
-  propName = 'REFLIB_refList' + user.id;
-  Bot.setProperty(propName, { users:[], count:0 }, 'json');
-  return true;
+  // TODO
 }
 
-function attractedByUser(){
-  return User.getProperty('REFLIB_attracted_by_user')
-}
-
-function attractedByChannel(){
-  return User.getProperty('REFLIB_attracted_by_channel')
+function getAttractedBy(){
+  var prop = getProp('attracted_by_user');
+  if(prop){
+    // support for old code
+    prop.chatId = prop.telegramid;
+  }
+  return prop;
 }
 
 function getRefLink(botName, prefix){
   if(!prefix){
-    prefix = "user"
+    prefix = 'user'
   }else{
-    Bot.setProperty("REFLIB_refList_" + "link_prefix", prefix, 'string');
+    Bot.setProperty(LIB_PREFIX + 'refList_' + 'link_prefix', prefix, 'string');
   }
 
-  let aff_link='https://t.me/' + botName + 
-    '?start=' + prefix + user.id;
+  if(!botName){ botName = bot.name }
 
-  let userKey = 'user' + user.id;
-  user.chatId = chat.chatid;
-  Bot.setProperty('REFLIB_' + userKey, user, 'json');
-  return aff_link;
+  // TODO: we need something like User.get({ user_id, xxx, bot_id: yyy })
+  // because this data in database already and we don't need this bot prop 
+  let userKey = LIB_PREFIX + 'user' + user.id;
+  Bot.setProperty(userKey, user, 'json');
+
+  return 'https://t.me/' + botName + '?start=' + prefix + user.id;
+}
+
+function isDeepLink(){
+  return (message.split(' ')[0]=='/start')&&params;
 }
 
 function track(_trackOptions={}){
-  let need_track = (message.split(' ')[0]=='/start')&&params;
-  if(!need_track){
-    User.setProperty('REFLIB_old_user', true, 'boolean');
-    return
-  }
-
   trackOptions = _trackOptions;
 
   if(isAlreadyAttracted() ){
-    emitEvent('onAlreadyAttracted');
-  }else{
-    trackRef(trackOptions);
+    return emitEvent('onAlreadyAttracted');
   }
+
+  if(isDeepLink()&&trackRef()){
+    return
+  }
+
+  return User.setProperty(LIB_PREFIX + 'old_user', true, 'boolean');
 }
 
 publish({
+  getLink: getRefLink,
+  track: track,
+  getRefList: getRefList,
+  getRefCount: getRefCount,
+  getTopList: getTopList,
+  getAttractedBy: getAttractedBy,
+  
+  // DEPRECATED
   currentUser:{
     getRefLink: getRefLink,
     track: track,
@@ -175,11 +168,9 @@ publish({
       get: getRefList,
       clear: clearRefList
     },
-    attractedByUser: attractedByUser,
-    attractedByChannel: attractedByChannel
+    attractedByUser: getAttractedBy,
   },
   topList:{
-    get: getTopList,
-    clear: clearTopList
+    get: getTopList
   }
 })

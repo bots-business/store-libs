@@ -1,8 +1,14 @@
+let libPrefix = 'currencyConverter';
+
 function storeRate(){
+  if(content.split(' ').join('')=='{}'){
+    throw new Error('Seems we have limits with Free Plan - https://free.currencyconverterapi.com/')
+  }
+
   let json = JSON.parse(content);
 
   if(json.error){
-    Bot.sendMessage("Error: " + json.error);
+    Bot.sendMessage('Error: ' + json.error);
     return
   }
 
@@ -22,11 +28,14 @@ function storeRate(){
   for(var attr in prms){ amount = prms[attr] }
 
   let val = { value: rate, updated_at: Date.now()};
-  Bot.setProperty(key, val, 'json');
+
+  if(key){
+    Bot.setProperty(key, val, 'json');
+  }
 
   let result = calcResult(rate, amount);
 
-  Bot.runCommand(cmd + ' ' + result);
+  Bot.run({ command: cmd + ' ' + result, options: {content: content} });
 };
 
 function calcResult(rate, amount){
@@ -42,7 +51,7 @@ function isHaveError(query, onSuccess){
   }
 
   else if(query.split('_').length!=2){
-    err_msg = 'Need TWO currencies separated with "_". ! For example: EUR_USD'
+    err_msg = 'Need TWO currencies separated with _. ! For example: EUR_USD'
   }
 
   else if(typeof(onSuccess)!='string'){
@@ -60,12 +69,19 @@ function isHaveError(query, onSuccess){
 function getApiUrl(query, onSuccess){
   if(isHaveError(query, onSuccess)){ return }
 
+  let apiKey = Bot.getProperty(libPrefix + 'ApiKey', '9e878aebb95bf44aba20');
+
   return 'http://free.currencyconverterapi.com/api/v5/convert?compact=y&q=' + query + 
-    "&apiKey=9e878aebb95bf44aba20"
+    '&apiKey=' + apiKey;
+}
+
+function setupApiKey(apiKey){
+  Bot.setProperty(libPrefix + 'ApiKey', apiKey, 'string');
 }
 
 publish({
   getApiUrl: getApiUrl,
+  setupApiKey: setupApiKey,
 
   convert: function(query, amount, onSuccess){
     if(isHaveError(query, onSuccess)){ return }
@@ -84,10 +100,10 @@ publish({
     }
     let url = getApiUrl(query, onSuccess);
 
-    HTTP.get( { url: url, success:'_lib_on_http_success ' + onSuccess + ' ' + amount } )
+    HTTP.get( { url: url, success: libPrefix + '_lib_on_http_success ' + onSuccess + ' ' + amount } )
   }
 })
 
-on('_lib_on_http_success', storeRate );
+on(libPrefix + '_lib_on_http_success', storeRate );
 
 

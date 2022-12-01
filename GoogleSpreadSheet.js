@@ -1,3 +1,6 @@
+// this Lib deprecated!
+// Use GoogleTableSync Lib!
+
 let libPrefix = "SpreadSheet-Lib-"
 
 function throwError(err){
@@ -5,6 +8,8 @@ function throwError(err){
 }
 
 function setUrlApp(appUrl){
+  Bot.sendMessage("This Lib deprecated! Please use GoogleTableSync Lib");
+
   if(typeof(appUrl)!="string"){
     throwError("Need pass Google App url")
   }
@@ -17,7 +22,7 @@ function setUrlApp(appUrl){
 }
 
 function getAppUrl(){
-  result = Bot.getProperty(libPrefix + "app-url");
+  let result = Bot.getProperty(libPrefix + "app-url");
   if(!result){
     throwError("Need set Google App url before using")
   }
