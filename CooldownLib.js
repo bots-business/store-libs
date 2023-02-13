@@ -1,10 +1,10 @@
 let LIB_PREFIX = "CooldownLib"
 let curCooldown;
 
-function loadCurCooldown(name, isUser){
+function loadCurCooldown(name, chat){
   var resLib = Libs.ResourcesLib;
   var name = LIB_PREFIX + "-" + name
-  curCooldown = isUser ? resLib.userRes(name) : resLib.chatRes(name);
+  curCooldown = chat ? resLib.anotherChatRes(name, chat.chatid) : resLib.userRes(name);
   return curCooldown;
 }
 
@@ -20,7 +20,7 @@ function setupCooldown(time){
       return
     }
   }
-  
+
   curCooldown.set(time);
 
   curCooldown.growth.add({
@@ -29,6 +29,8 @@ function setupCooldown(time){
     min: 0,
     max: time
   });
+
+  return true;
 }
 
 function isCooldown(){
@@ -55,12 +57,20 @@ function checkErrors(options){
   checkOptions(options);
 }
 
-function watch(options, isUser){
+function watch(options, chat){
   checkErrors(options);
-  loadCurCooldown(options.name, isUser);
+  loadCurCooldown(options.name, chat);
 
-  setupCooldown(options.time);
-  if(isCooldown()){
+  if(setupCooldown(options.time)){
+    // just started
+    if(options.onStarting){
+      options.onStarting();
+    }
+
+    return
+  }
+
+  if(isCooldown()&&(options.onWaiting)){
     options.onWaiting(curCooldown.value());
   }else{
     let result = options.onEnding();
@@ -70,20 +80,31 @@ function watch(options, isUser){
   }
 }
 
+
+// watching
 function watchUserCooldown(options){
-  watch(options, true);
+  watch(options);
 }
 
 function watchChatCooldown(options){
-  watch(options, false);
+  watch(options, chat);
 }
 
+function watchCooldown(options){
+  watch(options, { chatid: "global" });
+}
+
+// getting
 function getUserCooldown(name){
-  return loadCurCooldown(name, true);
+  return loadCurCooldown(name);
 }
 
 function getChatCooldown(name){
-  return loadCurCooldown(name, false);
+  return loadCurCooldown(name, chat);
+}
+
+function getCooldown(name){
+  return loadCurCooldown(name, { chatid: "global" });
 }
 
 publish({
@@ -94,5 +115,7 @@ publish({
   chat: {
     watch: watchChatCooldown,
     getCooldown: getChatCooldown
-  }
+  },
+  watch: watchCooldown,
+  getCooldown: getCooldown
 })

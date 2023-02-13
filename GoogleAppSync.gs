@@ -1,4 +1,4 @@
-// Bots.Business 2020
+// Bots.Business 2022
 // Use this code to connect Bots.Business BJS with Google App Script
 // https://help.bots.business/libs/googleapp
 
@@ -20,15 +20,19 @@ function run(data){
   var result = {};
   
   try {
-     result = eval(data.code);
+    var code = data.code;
+    result = eval(code);
   }catch (e){
     result.error = { name: e.name, message: e.message, stack: e.stack, code: data.code}
     if(is_debug){ sendMail(data, result) }
   }
   
-  if(is_debug&&(result=={})){ sendMail(data, result) }
-  
-  
+  if(!is_debug){
+    saveData(data, result);
+  }
+
+  if(is_debug){ sendMail(data, result) }
+
   result = { result: result, onRun: data.onRun};
   
   callWebhook(result, data);
@@ -37,9 +41,32 @@ function run(data){
 //this is a function that fires when the webapp receives a POST request
 function doPost(e){
   var data = e.postData.contents;
-  saveData(data);
-  
   run(data);
+
+  return HtmlService.createHtmlOutput("BBGoogleAppLib:ok");
+}
+
+function getFormatted(json){
+  try{
+    json = JSON.parse(json);
+    return  "<pre>" + JSON.stringify(json, null, 4) + "</pre>";
+  }catch{
+    return String(json)
+  }
+}
+
+//this is a function that fires when the webapp receives a GET request
+function doGet(e){
+  var lastData = loadData();
+  var lastResult = CacheService.getScriptCache().get("LastResult");
+
+  return HtmlService.createHtmlOutput(
+    "<h1>This is BB Google App Lib connector</h1>" +
+    "<h2>Last result:</h2>" +
+      getFormatted(lastResult) +
+    "<h2>Last data:</h2>" +
+    "<br>" + getFormatted(lastData)
+  )
 }
 
 function setBJSData(data){  
@@ -48,7 +75,6 @@ function setBJSData(data){
   bot = data.bot;
   params = data.params;
   options = data.options;
-  statistics = data.statistics;
   admins = data.admins;
   owner = data.owner;
   iteration_quota = data.iteration_quota;
@@ -60,6 +86,8 @@ function setBJSData(data){
   cookies = data.cookies;
   http_headers = data.http_header;
   user = data.user;
+  command = data.command;
+  BB_API_URL = data.BB_API_URL;
 }
 
 function sendMail(data, result){
@@ -86,17 +114,13 @@ function sendWebhookErrorMail(data, result){
   });
 }
 
-function saveData(data){
-  CacheService.getScriptCache().put("LastData", data); 
+function saveData(data, result){
+  CacheService.getScriptCache().put("LastData", JSON.stringify(data));
+  CacheService.getScriptCache().put("LastResult", JSON.stringify(result));
 }
 
 function loadData(){
   return CacheService.getScriptCache().get("LastData");
-}
-
-function doGet(e){
-  var html = response.getContentText();
-  return HtmlService.createHtmlOutput("<h1>Google App Sync: installed</h1>");
 }
 
 function callWebhook(result, data){

@@ -1,4 +1,4 @@
-let LIB_PREFIX = 'MembershipChecker_';
+let LIB_PREFIX = "MembershipChecker_";
 
 function setupAdminPanel(){
 
@@ -20,7 +20,7 @@ function setupAdminPanel(){
       {
         name: "checkTime",
         title: "checking delay in minutes",
-        description: "the bot will check the user's membership for all incoming messages once at this time",
+        description: "the bot will check the user membership for all incoming messages once at this time",
         type: "integer",
         placeholder: "10",
         value: 20,
@@ -100,7 +100,7 @@ function handleAll(){
   if(!user){ return }  // can check only for user
 
   if(message&&(message.indexOf(LIB_PREFIX) + 1)){
-    return // do not handle internal Lib's commands
+    return // do not handle internal Lib"s commands
   }
 
   var opts = getLibOptions();
@@ -270,4 +270,4 @@ on(LIB_PREFIX + "checkMemberships", checkMemberships);
 on(LIB_PREFIX + "checkMembership", checkMembership);
 on(LIB_PREFIX + "onCheckMembership", onCheckMembership);
 on(LIB_PREFIX + "onError", onError);
-on("*", handleAll );
+on("@", handleAll );

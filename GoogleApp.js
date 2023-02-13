@@ -16,6 +16,7 @@ function isWebhookLibInstalled(){
 function getWebhookUrl(isDebug){
   var cmd = libPrefix + "onRun";
   if(isDebug){
+    Bot.sendMessage("GoogleAppLib: Debug mode - ON");
     cmd = libPrefix + "onDebugRun"
   }
   return Libs.Webhooks.getUrlFor({
@@ -35,11 +36,11 @@ function isOptionsCorrect(options){
   if(typeof(options)!="object"){
     throwError("on run - param must be object")
   }
-  if(!options.func){
-    throwError("on run - need passed func in params")
+  if(!options.code){
+    throwError("on run - need passed code in params")
   }
-  if(!options.func.name){
-    throwError("on run - func must be function with name")
+  if(!options.code.name){
+    throwError("on run - code must be function with name")
   }
 }
 
@@ -48,10 +49,18 @@ function run(options){
   isOptionsCorrect(options)
 
   var webhookUrl = getWebhookUrl(options.debug);
-  var func = options.func;
+  var func = options.code;
+  var url = getUrl() + "?hl=en";
+
+  if(options.debug){
+    Bot.sendMessage(
+      "GoogleAppLib: post data to [url](" + url + ")." +
+      "\n\nYou can open this link only on incognito mode without Google autorization"
+    );
+  }
 
   HTTP.post( {
-    url: getUrl() + "?hl=en",
+    url: url,
     // success: "" - no success 
     error: libPrefix + "onHttpError",
     body: {
@@ -75,7 +84,6 @@ function getData(){
     bot: bot,
     params: params,
     options: options,
-    statistics: statistics,
     admins: admins,
     owner: owner,
     iteration_quota: iteration_quota,
@@ -85,7 +93,9 @@ function getData(){
     content: content,
     http_status: http_status,
     cookies: cookies,
-    http_headers: http_headers
+    http_headers: http_headers,
+    command: command,
+    BB_API_URL: BB_API_URL
  }
 }
 
@@ -101,8 +111,12 @@ function inspectError(json){
 }
 
 function parseContent(){
+  if(typeof(content)=="object"){
+    return content
+  }
+
   try{
-    return json = JSON.parse(content);
+    return JSON.parse(content);
   }catch(e){
     throwError("Error on content parsing: " + content)
   }
@@ -111,7 +125,7 @@ function parseContent(){
 function doUserOnRun(data){
   if(!data.onRun){ return }
   if(data.onRun==""){ return }
-  Bot.run({ command: data.onRun, options: data.result, run_after: 1 })
+  Bot.run({ command: data.onRun, options: data.result })
 }
 
 function onRun(){
