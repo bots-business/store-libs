@@ -8,7 +8,14 @@ let growthResource = function(resource){
     propName: function(){ return this.resource.propName() + '_growth'},
 
     info: function(){
-      return Bot.getProperty(this.propName()) || {}
+      try{
+       return Bot.getProperty({
+          name: this.propName(),
+          bot_id: this.resource.bot_id
+        }) || {}
+      }catch(e){
+        throw 'ResLib: Error: ' + e
+      }
     },
 
     title: function(){
@@ -42,7 +49,16 @@ let growthResource = function(resource){
       if(!growth){ return }
 
       growth.enabled = status;
-      return Bot.setProperty(this.propName(), growth, 'json');
+      try{
+        return Bot.setProperty({
+          name: this.propName(),
+          value: growth, 
+          type: 'json',
+          bot_id: this.resource.bot_id
+          });
+      }catch(e){
+        throw 'ResLib: Error: ' + e
+      }
     },
 
     stop: function(){
@@ -154,8 +170,16 @@ let growthResource = function(resource){
       if(fraction){ started_at = started_at - fraction }
 
       growth.started_at = started_at;
-
-      return Bot.setProperty(this.propName(), growth, 'json');
+      try{
+        return Bot.setProperty({
+          name: this.propName(),
+          value: growth, 
+          type: 'json',
+          bot_id: this.resource.bot_id
+          });
+      }catch(e){
+        throw 'ResLib: Error: ' + e
+      }
     },
 
     _updateBaseValue: function(base_value){
@@ -163,7 +187,16 @@ let growthResource = function(resource){
       if(!growth){ return }
 
       growth.base_value = base_value;
-      return Bot.setProperty(this.propName(), growth, 'json');
+      try{
+        return Bot.setProperty({
+          name: this.propName(),
+          value: growth, 
+          type: 'json',
+          bot_id: this.resource.bot_id
+          });
+      }catch(e){
+        throw 'ResLib: Error: ' + e
+      }    
     },
 
     _newGrowth: function(options){
@@ -209,11 +242,12 @@ let growthResource = function(resource){
   }
 }
 
-let commonResource = function(objName, objID, resName){
+let commonResource = function(objName, objID, resName,bot_id){
   return {
     objName: objName,
     objID: objID,
     name: resName,
+    bot_id: bot_id,
     growth: null,
 
     _setGrowth: function(growth){
@@ -240,10 +274,19 @@ let commonResource = function(objName, objID, resName){
     },
 
     baseValue: function(){
-      let cur_value = Bot.getProperty(this.propName());
+      try{
+      let cur_value = Bot.getProperty({
+        name: this.propName(),
+        user_telegramid: this.objName=='user' ? this.objID : undefined,
+        bot_id: this.bot_id
+      });
+
       if(typeof(cur_value)=='undefined'){ return 0 }
 
       return cur_value;
+      }catch(e){
+        throw 'ResLib: Error: ' + e
+      }
     },
 
     value: function(){
@@ -287,7 +330,18 @@ let commonResource = function(objName, objID, resName){
     },
 
     _set: function(res_amount){
-      Bot.setProperty(this.propName(), res_amount, 'float');
+      try{ 
+        Bot.setProperty({
+          name: this.propName(), 
+          value: res_amount, 
+          type: 'float',
+          user_telegramid: this.objName=='user' ? this.objID : undefined,
+          list: libPrefix + this.objName,
+          bot_id: this.bot_id
+        });
+      }catch(e){
+        throw 'ResLib: set error: ' + e
+      }
     },
 
     set: function(res_amount){
@@ -352,8 +406,16 @@ let commonResource = function(objName, objID, resName){
 
     transferToAnyway: function(anotherResource, res_amount){
       return this.anywayTakeFromAndTransferTo(this, anotherResource, res_amount);
-    }
+    },
 
+    getList: function (){
+      var list = new List({ 
+        name: libPrefix +  this.objName ,
+        bot_id: this.bot_id
+      });
+      if(!list.exist){ list.create() }
+      return list;
+    }
   }
 }
 
@@ -363,30 +425,44 @@ let growthFor = function(resource){
   return growth;
 }
 
-let getResourceFor = function(object, object_id, resName){
-  let res =  commonResource(object, object_id, resName);
+let getResourceFor = function(object, object_id, resName,bot_id){
+  let res =  commonResource(object, object_id, resName,bot_id);
   growthFor(res);
 
   return res;
 }
 
 let userResource = function(resName){
-  return getResourceFor('user', user.telegramid, resName);
+  return getResourceFor('user', user.telegramid, resName, bot.id);
 }
 
 let chatResource = function(resName){
-  return getResourceFor('chat', chat.chatid, resName);
+  return getResourceFor('chat', chat.chatid, resName, bot.id);
 }
 
 let anotherUserResource = function(resName, telegramid){
-  return getResourceFor('user', telegramid, resName);
+  return getResourceFor('user', telegramid, resName, bot.id);
 }
 
 let anotherChatResource = function(resName, chatid){
-  return getResourceFor('chat', chatid, resName);
+  return getResourceFor('chat', chatid, resName, bot.id);
 }
 
+let anotherBotUserResource = function(resName,bot_id){
+  return getResourceFor('user', user.telegramid, resName, bot_id);
+}
 
+let anotherBotChatResource = function(resName,bot_id){
+  return getResourceFor('chat', chat.chatid, resName, bot_id);
+}
+
+let anotherBotAnotherUserResource = function(resName,bot_id){
+  return getResourceFor('user', user.telegramid, resName, bot_id);
+}
+
+let anotherBotAnotherChatResource = function(resName,bot_id){
+  return getResourceFor('chat', chat.chatid, resName, bot_id);
+}
 
 publish({
   userRes: userResource,
@@ -395,6 +471,11 @@ publish({
   anotherUserRes: anotherUserResource,
   anotherChatRes: anotherChatResource,
 
-  growthFor: growthFor
+  anotherBotUserRes: anotherBotUserResource,
+  anotherBotChatRes: anotherBotChatResource,
 
+  anotherBotAnotherUserRes: anotherBotAnotherUserResource,
+  anotherBotAnotherChatRes: anotherBotAnotherChatResource,
+
+  growthFor: growthFor
 })
