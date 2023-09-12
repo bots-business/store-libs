@@ -95,7 +95,7 @@ function debugInfo(info){
   })
 }
 
-function handleAll(){
+function handle(){
   if(!user){ return }  // can check only for user
 
   if(message&&(message.indexOf(LIB_PREFIX) + 1)){
@@ -104,6 +104,8 @@ function handleAll(){
 
   let opts = getLibOptions();
   if(!opts.chats){ return }
+
+  debugInfo("MembershipChecker handle")
 
   if(isFreshTime(getUserData().lastCheckTime, opts)){
     // check is not needed now
@@ -127,6 +129,7 @@ function check(){
 
   debugInfo("create task for checking")
 
+  // create task for checking
   Bot.run({
     command: LIB_PREFIX + "checkMemberships",
     run_after: 1  // just for run in background
@@ -144,6 +147,12 @@ function checkMembership(chat_id){
     on_result: LIB_PREFIX + "onCheckMembership " + chat_id,
     on_error: LIB_PREFIX + "onError " + chat_id
   })
+}
+
+function getChats(){
+  let options = getLibOptions();
+  if(!options.chats){ return }
+  return options.chats
 }
 
 function checkMemberships(){
@@ -176,13 +185,19 @@ function isJoined(response){
 function handleMembership(chat_id, data){
   let opts = getLibOptions();
 
-  data[chat_id] = Date.now();
-  saveUserData(data);
-
   if(!data[chat_id]&&opts.onJoininig){
     // run on just Joined
-    Bot.run({ command: opts.onJoininig, options: { chat_id: chat_id, result: options.result } })
+    Bot.run({
+      command: opts.onJoininig,
+      options: {
+        chat_id: chat_id,
+        result: options.result
+      }
+    })
   }
+
+  data[chat_id] = Date.now();
+  saveUserData(data);
 }
 
 function handleNoneMembership(chat_id, data){
@@ -192,7 +207,10 @@ function handleNoneMembership(chat_id, data){
   saveUserData(data);
 
   if(opts.onNeedJoining){
-    Bot.run({ command: opts.onNeedJoining, options: { chat_id: chat_id, result: options.result } })
+    Bot.run({
+      command: opts.onNeedJoining,
+      options: { chat_id: chat_id, result: options.result } 
+    })
   }
 }
 
@@ -205,6 +223,7 @@ function onCheckMembership(){
   debugInfo("check response: " + JSON.stringify(options));
 
   if(isJoined(options)){
+    debugInfo("user is joined to " + chat_id + " chat")
     return handleMembership(chat_id, data)
   }
 
@@ -268,15 +287,14 @@ function isMember(chat_id){
 }
 
 publish({
-  setup: setup,
-  check: check,
-  isMember: isMember
+  setup: setup,         // setup admin panel
+  check: check,         // manual checking without time delay
+  handle: handle,       // use on @ command - checking with time delay
+  isMember: isMember,   // check for all chats?
+  getChats: getChats    // get chats for checking
 })
 
 on(LIB_PREFIX + "checkMemberships", checkMemberships);
 on(LIB_PREFIX + "checkMembership", checkMembership);
 on(LIB_PREFIX + "onCheckMembership", onCheckMembership);
 on(LIB_PREFIX + "onError", onError);
-
-// membership checking on before all "@" command
-on("@", handleAll );
