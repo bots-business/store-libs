@@ -88,11 +88,11 @@ function saveUserData(data){
 
 function debugInfo(info){
   if(!getLibOptions().debug){ return }
-  Bot.sendMessage(
-    LIB_PREFIX + " Debug: " + 
+  Api.sendMessage({
+    text: LIB_PREFIX + " Debug: " + 
     "\n  message: " + message +
     "\n" + info
-  )
+  })
 }
 
 function handleAll(){
