@@ -448,20 +448,20 @@ let anotherChatResource = function(resName, chatid){
   return getResourceFor('chat', chatid, resName, bot.id);
 }
 
-let anotherBotUserResource = function(resName,bot_id){
+let anotherBotUserResource = function(resName, bot_id){
   return getResourceFor('user', user.telegramid, resName, bot_id);
 }
 
-let anotherBotChatResource = function(resName,bot_id){
+let anotherBotChatResource = function(resName, bot_id){
   return getResourceFor('chat', chat.chatid, resName, bot_id);
 }
 
-let anotherBotAnotherUserResource = function(resName,bot_id){
-  return getResourceFor('user', user.telegramid, resName, bot_id);
+let anotherBotAnotherUserResource = function(resName, bot_id, telegramid){
+  return getResourceFor('user', telegramid, resName, bot_id);
 }
 
-let anotherBotAnotherChatResource = function(resName,bot_id){
-  return getResourceFor('chat', chat.chatid, resName, bot_id);
+let anotherBotAnotherChatResource = function(resName, bot_id, chatid){
+  return getResourceFor('chat', chatid, resName, bot_id);
 }
 
 publish({
