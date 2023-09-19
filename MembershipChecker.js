@@ -263,7 +263,7 @@ function proccessOldChat(userData){
   Bot.run({
     command: opts.onStillJoined,
     options: {
-      bb_options: options.bb_options
+      bb_options: options.bb_options.passed_options
     }
   })
 
