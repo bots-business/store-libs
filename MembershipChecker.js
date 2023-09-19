@@ -127,7 +127,7 @@ function isInternalCommands(opts){
   )
 }
 
-function handle(bb_options){
+function handle(passed_options){
   if(!user){ return }  // can check only for user
 
   let opts = getLibOptions();
@@ -156,10 +156,10 @@ function handle(bb_options){
     return
   }
 
-  check(bb_options, true);
+  check(passed_options, true);
 }
 
-function check(bb_options, noNeedOnStillJoined){
+function check(passed_options, noNeedOnStillJoined){
   let userData = getUserData();
 
   debugInfo("check() for user Data: " + JSON.stringify(userData));
@@ -181,7 +181,7 @@ function check(bb_options, noNeedOnStillJoined){
     options: {
       time: Date.now(),                                   // current time value for this checking
       needStillJoinedCallback: !noNeedOnStillJoined,      // if true - we need to call still joined callback
-      bb_options: bb_options,                             // passed options from user
+      bb_options: passed_options,                         // customized passed options
     },
     run_after: 1                                          // just for run in background
   })
@@ -195,7 +195,7 @@ function checkMembership(chat_id){
     user_id: user.telegramid,
     on_result: LIB_PREFIX + "onCheckMembership " + chat_id,
     on_error: LIB_PREFIX + "onError " + chat_id,
-    bb_options: options
+    bb_options: options    // here we have all options lib + admin passed_options
   })
 }
 
@@ -273,7 +273,8 @@ function proccessOldChat(userData, chat_id){
 
 function handleMembership(chat_id, userData){
   // we use same time - because need to track still joined callback
-  userData.chats[chat_id] = options.time;
+  userData.chats[chat_id] = options.bb_options.time;
+
   // it can be NOT saved if we have error onCallback (opts.onJoininig)
   saveUserData(userData);
 
@@ -292,13 +293,13 @@ function handleMembership(chat_id, userData){
   }
 
   debugInfo("run onJoininig callback: " + opts.onJoininig + " for " + chat_id + 
-    "\n\n> " + JSON.stringify(userData)
+    "\n\n> " + JSON.stringify(userData) + "\n\n> " + JSON.stringify(options)
   );
 
   Bot.run({
     command: opts.onJoininig,
     options: {
-      bb_options: options.bb_options
+      bb_options: options.bb_options.passed_options
     }
   })
 }
@@ -316,7 +317,7 @@ function handleNoneMembership(chat_id, userData){
     options: { 
       chat_id: chat_id,
       result: options.result,
-      bb_options: options.bb_options
+      bb_options: options.bb_options.passed_options
     }
   })
 }
@@ -325,7 +326,7 @@ function onCheckMembership(){
   let chat_id = params.split(" ")[0];
 
   let userData = getUserData();
-  userData.lastCheckTime = options.time;
+  userData.lastCheckTime = options.bb_options.time;
 
   debugInfo("check response: " + JSON.stringify(options) + "\n\n> " + JSON.stringify(userData));
 
