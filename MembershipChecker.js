@@ -102,7 +102,7 @@ function debugInfo(info){
   if(!getLibOptions().debug){ return }
   Api.sendMessage({
     text: "<b>MCLDebug</b>" +
-    "\n <i>turn off debug in AdminPanel</i> " + 
+    "\n <i>turn off debug in AdminPanel</i> " +
     "\n  <b>message:</b> " + message +
     "\n\n⚡ " + info,
     parse_mode: "HTML"
@@ -151,7 +151,7 @@ function handle(passed_options){
   let lastCheckTime = getUserData().lastCheckTime;
   if(!canRunHandleAgain(lastCheckTime, opts)){
     // check is not needed now
-    debugInfo("Checking is not required since the delay time has not come yet.\nCurrent delay: " + 
+    debugInfo("Checking is not required since the delay time has not come yet.\nCurrent delay: " +
       String(opts.checkTime) + " min" )
     return
   }
@@ -232,26 +232,25 @@ function isJoined(response){
 
 function needStillJoinedCallback(userData) {
   // all chats have same time - lastCheckTime
+  const lastCheckTime = options.bb_options.time;
   return Object.values(userData.chats).every(
     value => value === lastCheckTime
   );
 }
 
-function proccessOldChat(userData, chat_id){
-  if(!userData.chats[chat_id]){
-    debugInfo("It is new chat: " + chat_id + " \n\n> " + JSON.stringify(userData));
-    return false   // it is NOT old chat
-  }
-
+function proccessOldChat(userData){
   // it is still joined chat
-  debugInfo("skip old chat: " + chat_id);
+  debugInfo("skip old chat");
 
   let opts = getLibOptions();
 
   const needCallback = (
-    options.needStillJoinedCallback&&      // we need callback only with check() method not in handle()
-    needStillJoinedCallback(userData)&&        // all chats have same time - lastCheckTime
-    opts.onStillJoined                     // callback is installed
+    // we need callback only with check() method not in handle()
+    options.bb_options.needStillJoinedCallback&&
+    // all chats have same time - lastCheckTime
+    needStillJoinedCallback(userData)&&
+    // callback is installed
+    opts.onStillJoined
   );
 
   if(!needCallback){
@@ -272,18 +271,26 @@ function proccessOldChat(userData, chat_id){
 }
 
 function handleMembership(chat_id, userData){
+  const isOld = userData.chats[chat_id];
+
   // we use same time - because need to track still joined callback
   userData.chats[chat_id] = options.bb_options.time;
 
-  // it can be NOT saved if we have error onCallback (opts.onJoininig)
+  // skip old chats
+  if(isOld){
+    proccessOldChat(userData)
+    saveUserData(userData);
+    return
+  }
+
+  // we do not need stillJoinedCallback on new chat
+  // set different time for new chat
+  userData.chats[chat_id]+= 10;
   saveUserData(userData);
 
-  // skip old chats
-  if(proccessOldChat(userData, chat_id)){ return }
-
   let opts = getLibOptions();
+  const needCallback = ( !isOld && opts.onJoininig);
 
-  const needCallback = ( !isActualMembership(chat_id) && opts.onJoininig);
   if(!needCallback){
     debugInfo(
       "onJoininig callback is not needed: it is old joining in: " + chat_id +
@@ -292,7 +299,7 @@ function handleMembership(chat_id, userData){
     return
   }
 
-  debugInfo("run onJoininig callback: " + opts.onJoininig + " for " + chat_id + 
+  debugInfo("run onJoininig callback: " + opts.onJoininig + " for " + chat_id +
     "\n\n> " + JSON.stringify(userData) + "\n\n> " + JSON.stringify(options)
   );
 
@@ -314,7 +321,7 @@ function handleNoneMembership(chat_id, userData){
 
   Bot.run({
     command: opts.onNeedJoining,
-    options: { 
+    options: {
       chat_id: chat_id,
       result: options.result,
       bb_options: options.bb_options.passed_options
@@ -331,7 +338,7 @@ function onCheckMembership(){
   debugInfo("check response: " + JSON.stringify(options) + "\n\n> " + JSON.stringify(userData));
 
   if(isJoined(options)){
-    debugInfo("user is joined to " + chat_id + " chat")
+    debugInfo("user is (still?) joined to " + chat_id + " chat")
     return handleMembership(chat_id, userData)
   }
 
@@ -386,7 +393,7 @@ function _getChats(needError){
   let options = getLibOptions();
 
   const error = "MembershipChecker: no chats for checking";
-  if(!options.chats){ 
+  if(!options.chats){
     if(needError){ throw new Error(error) }
   }
 
