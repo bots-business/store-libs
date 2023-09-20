@@ -61,6 +61,14 @@ function setupAdminPanel(){
         icon: "bug"
       },
       {
+        name: "onAllJoining",
+        title: "onAllJoining command",
+        description: "if the user have membership in all channels this command will be executed",
+        type: "string",
+        placeholder: "/onAllJoining",
+        icon: "happy"
+      }
+      {
         name: "debug",
         title: "debug info",
         description: "turn on for debug info",
@@ -86,10 +94,16 @@ function getLibOptions(){
   return AdminPanel.getPanelValues("MembershipChecker");
 }
 
+function wasLastJoined(passed_bool){
+  var userData = getUserData();
+  userData.last_joined.push(passed_bool);
+  saveUserData(userData);
+}
 function getUserData(){
   let userData = User.getProperty(LIB_PREFIX + "Data");
-  if(!userData){ userData = { chats: {} } }
+  if(!userData){ userData = { chats: {}, last_joined: [] } }
   if(!userData.chats){ userData.chats = {} }
+  if(!userData.last_joined){ userData.last_joined = [] }
   return userData;
 }
 
@@ -222,6 +236,17 @@ function checkMemberships(){
       run_after: 1,              // just for run in background
     })
   }
+let opts = getLibOptions();
+var userData = getUserData();
+if(!userData.last_joined.includes(false)){
+  debugInfo("running onAllJoining Command");
+  Bot.run({
+  command: opts.onAllJoining,
+  options: {
+      bb_options: options.bb_options.passed_options
+    }
+    })
+}
 }
 
 function isJoined(response){
@@ -302,7 +327,7 @@ function handleMembership(chat_id, userData){
   debugInfo("run onJoininig callback: " + opts.onJoininig + " for " + chat_id +
     "\n\n> " + JSON.stringify(userData) + "\n\n> " + JSON.stringify(options)
   );
-
+wasLastJoined(true);
   Bot.run({
     command: opts.onJoininig,
     options: {
