@@ -1,10 +1,9 @@
 // 24443 - lib id
 
-let LIB_PREFIX = "MembershipChecker_";
+const LIB_PREFIX = "MembershipChecker_";
 
 function setupAdminPanel(){
-
-  let panel = {
+  const panel = {
     // Panel title
     title: "Membership checker options",
     description: "use these options to check your user channel membership",
@@ -127,7 +126,7 @@ function isInternalCommands(opts){
   )
 }
 
-function handle(passed_options){
+function isHandleNeeded(){
   if(!user){ return }  // can check only for user
 
   let opts = getLibOptions();
@@ -146,17 +145,33 @@ function handle(passed_options){
     return
   }
 
+  return true;
+}
+
+function handle(passed_options){
+  if(!isHandleNeeded()){ return }
+
   debugInfo("handle()")
 
   let lastCheckTime = getUserData().lastCheckTime;
-  if(!canRunHandleAgain(lastCheckTime, opts)){
-    // check is not needed now
-    debugInfo("Checking is not required since the delay time has not come yet.\nCurrent delay: " +
-      String(opts.checkTime) + " min" )
-    return
+  if(canRunHandleAgain(lastCheckTime, opts)){
+    return check(passed_options, true);
   }
 
-  check(passed_options, true);
+  // check is not needed now
+  debugInfo(
+    "Checking is not required since the delay time has not come yet.\nCurrent delay: " +
+      String(opts.checkTime) + " min"
+  )
+}
+
+function isItSpammCall(lastCheckTime){
+  // only 1 check per 2 second for one user
+  if(lastCheckTime){
+    let duration = Date.now() - lastCheckTime;
+    return duration < 2000
+  }
+  return false
 }
 
 function check(passed_options, noNeedOnStillJoined){
@@ -164,13 +179,9 @@ function check(passed_options, noNeedOnStillJoined){
 
   debugInfo("check() for user Data: " + JSON.stringify(userData));
 
-  // only 1 check per 2 second for one user
-  if(userData.sheduledAt){
-    let duration = Date.now() - userData.sheduledAt;
-    if(duration < 2000){ return }
-  }
+  if(isItSpammCall(userData.lastCheckTime)){ return }
 
-  userData.sheduledAt = Date.now();
+  userData.lastCheckTime = Date.now();
   saveUserData(userData);
 
   debugInfo("create task for checking");
@@ -179,7 +190,7 @@ function check(passed_options, noNeedOnStillJoined){
   Bot.run({
     command: LIB_PREFIX + "checkMemberships",
     options: {
-      time: Date.now(),                                   // current time value for this checking
+      time: userData.lastCheckTime,                       // current time value for this checking
       needStillJoinedCallback: !noNeedOnStillJoined,      // if true - we need to call still joined callback
       bb_options: passed_options,                         // customized passed options
     },
@@ -200,13 +211,11 @@ function checkMembership(chat_id){
 }
 
 function getChats(){
-  let options = getLibOptions();
-  if(!options.chats){ return }
-  return options.chats
+  return getLibOptions().chats;
 }
 
 function getNotJoinedChats(){
-  return _getNotJoinedChats().join(", ")
+  return _getNotJoinedChats().join(", ");
 }
 
 function checkMemberships(){
@@ -231,33 +240,32 @@ function isJoined(response){
 
 
 function needStillJoinedCallback(userData) {
+  // we need callback only with check() method not in handle()
+  if(!options.bb_options.needStillJoinedCallback){ return false }
+  // callback must be installed
+  if(!getLibOptions().onStillJoined){ return false }
+
   // all chats have same time - lastCheckTime
   const lastCheckTime = options.bb_options.time;
-  return Object.values(userData.chats).every(
+  const sameTime = Object.values(userData.chats).every(
     value => value === lastCheckTime
   );
+
+  return sameTime;
 }
 
 function proccessOldChat(userData){
   // it is still joined chat
   debugInfo("skip old chat");
 
-  let opts = getLibOptions();
-
-  const needCallback = (
-    // we need callback only with check() method not in handle()
-    options.bb_options.needStillJoinedCallback&&
-    // all chats have same time - lastCheckTime
-    needStillJoinedCallback(userData)&&
-    // callback is installed
-    opts.onStillJoined
-  );
+  const needCallback = needStillJoinedCallback(userData);
 
   if(!needCallback){
     debugInfo("still joined callback is not needed: " + JSON.stringify(options));
     return true
   }
 
+  const opts = getLibOptions();
   debugInfo("run still joined callback: " + opts.onStillJoined);
 
   Bot.run({
