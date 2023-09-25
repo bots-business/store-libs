@@ -72,7 +72,7 @@ function saveToken(access_token) {
  *
  * @since 1.0.0
  *
- * @param {string|number} chatid - The chat ID to add.
+ * @param {number} chatid - The chat ID to add.
  * @param {string} access_token - The Projectoid access token.
  * @param {string} command - The command to execute on success.
  */
