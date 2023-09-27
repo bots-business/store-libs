@@ -38,9 +38,17 @@ function setupAdminPanel(){
       {
         name: "onJoining",
         title: "onJoining command",
-        description: "if the user just received a membership this command will be executed",
+        description: "if the user just received a membership for any chat or channel this command will be executed",
         type: "string",
         placeholder: "/onJoining",
+        icon: "person-add"
+      },
+      {
+        name: "onAllJoining",
+        title: "on AllJoining command",
+        description: "if the user just received a membership for all chats and channels this command will be executed",
+        type: "string",
+        placeholder: "/onAllJoining",
         icon: "happy"
       },
       {
@@ -121,6 +129,7 @@ function isInternalCommands(opts){
   return (
     msgIncludes(LIB_PREFIX)||
     msgIncludes(opts.onJoining)||
+    msgIncludes(opts.onAllJoining)||
     msgIncludes(opts.onNeedJoining)||
     msgIncludes(opts.onError)
   )
@@ -297,22 +306,22 @@ function handleMembership(chat_id, userData){
   saveUserData(userData);
 
   let opts = getLibOptions();
-  const needCallback = ( !isOld && opts.onJoining);
+  const needCallback = ( !isOld && opts.onAllJoining);
 
   if(!needCallback){
     debugInfo(
-      "onJoining callback is not needed: it is old joining in: " + chat_id +
+      "onAllJoining callback is not needed: it is old joining in: " + chat_id +
       "\n\n> " + JSON.stringify(userData)
     );
     return
   }
 
-  debugInfo("run onJoining callback: " + opts.onJoining + " for " + chat_id +
+  debugInfo("run onAllJoining callback: " + opts.onAllJoining + " for " + chat_id +
     "\n\n> " + JSON.stringify(userData) + "\n\n> " + JSON.stringify(options)
   );
 
   Bot.run({
-    command: opts.onJoining,
+    command: opts.onAllJoining,
     options: {
       bb_options: options.bb_options.passed_options
     }
