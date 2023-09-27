@@ -36,11 +36,11 @@ function setupAdminPanel(){
         icon: "alert"
       },
       {
-        name: "onJoininig",
-        title: "onJoininig command",
+        name: "onJoining",
+        title: "onJoining command",
         description: "if the user just received a membership this command will be executed",
         type: "string",
-        placeholder: "/onJoininig",
+        placeholder: "/onJoining",
         icon: "happy"
       },
       {
@@ -120,7 +120,7 @@ function isInternalCommands(opts){
 
   return (
     msgIncludes(LIB_PREFIX)||
-    msgIncludes(opts.onJoininig)||
+    msgIncludes(opts.onJoining)||
     msgIncludes(opts.onNeedJoining)||
     msgIncludes(opts.onError)
   )
@@ -297,22 +297,22 @@ function handleMembership(chat_id, userData){
   saveUserData(userData);
 
   let opts = getLibOptions();
-  const needCallback = ( !isOld && opts.onJoininig);
+  const needCallback = ( !isOld && opts.onJoining);
 
   if(!needCallback){
     debugInfo(
-      "onJoininig callback is not needed: it is old joining in: " + chat_id +
+      "onJoining callback is not needed: it is old joining in: " + chat_id +
       "\n\n> " + JSON.stringify(userData)
     );
     return
   }
 
-  debugInfo("run onJoininig callback: " + opts.onJoininig + " for " + chat_id +
+  debugInfo("run onJoining callback: " + opts.onJoining + " for " + chat_id +
     "\n\n> " + JSON.stringify(userData) + "\n\n> " + JSON.stringify(options)
   );
 
   Bot.run({
-    command: opts.onJoininig,
+    command: opts.onJoining,
     options: {
       bb_options: options.bb_options.passed_options
     }
