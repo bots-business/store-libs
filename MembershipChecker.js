@@ -421,19 +421,16 @@ function _getChats(needError){
   return chats
 }
 
-function _isChatsMember(){
-  _getChats(true)  // with error if no chats
-  return ( _getNotJoinedChats().length == 0 )
-}
-
 // is member of all chats?
 function isMember(chat_id){
   if(chat_id){
     return isActualMembership(chat_id);
   }
 
+  _getChats(true)  // with error if no chats
+
   // for all chats
-  return _isChatsMember()
+  return ( _getNotJoinedChats().length == 0 )
 }
 
 publish({
