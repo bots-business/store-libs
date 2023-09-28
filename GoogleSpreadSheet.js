@@ -98,18 +98,19 @@ function onSuccess(){
   let callback = params.split(" ")[0];
   let errCalback = params.split(" ")[1];
 
-  var result = content.split("APP-RESULT")[1];
+  let result = content.split("APP-RESULT")[1];
 
   if(!result){
-    // error
-    var arr = content.split("width:600px");
-    var error = arr[1].split("<")[0]
-    return Bot.runCommand(errCalback, {error: error});
-  }
+    let error;
+    let arr = content.split("width:600px");
 
-  result = decodeURI(result);
-  result = JSON.parse(result)
-  Bot.runCommand(callback, result);
+    try {
+      error = arr[1].split("<")[0];
+    } catch(e) {
+      error = "error with data posting: " + content;
+    }
+
+  return Bot.runCommand(errCalback, {error: error});
 }
 
 function onError(){
