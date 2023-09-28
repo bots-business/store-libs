@@ -307,7 +307,7 @@ function handleMembership(chat_id, userData){
   _saveUserData(userData);
 
   let opts = _getLibOptions();
-  const needCallback = ( !isOld && opts.onAllJoining);
+  const needCallback = ( !isOld && opts.onJoining);
 
   if(!needCallback){
     _debugInfo(
@@ -317,7 +317,7 @@ function handleMembership(chat_id, userData){
     return
   }
 
-  _debugInfo("run onAllJoining callback: " + opts.onAllJoining + " for " + chat_id +
+  _debugInfo("run onJoining callback: " + opts.onJoining + " for " + chat_id +
     "\n\n> " + JSON.stringify(userData) + "\n\n> " + JSON.stringify(options)
   );
 
