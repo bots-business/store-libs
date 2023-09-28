@@ -45,7 +45,7 @@ function _setupAdminPanel(){
       },
       {
         name: "onAllJoining",
-        title: "on AllJoining command",
+        title: "onAllJoining command",
         description: "if the user just received a membership for all chats and channels this command will be executed",
         type: "string",
         placeholder: "/onAllJoining",
@@ -163,6 +163,7 @@ function handle(passed_options){
   _debugInfo("handle()")
 
   let lastCheckTime = _getUserData().lastCheckTime;
+  const opts = _getLibOptions();
   if(_canRunHandleAgain(lastCheckTime, opts)){
     return check(passed_options, true);
   }
@@ -333,7 +334,12 @@ function handleMembership(chat_id, userData){
     return
   }
 
-  return _runCallback("onJoining", chat_id);
+  _runCallback("onJoining", chat_id);
+
+  // is all chats joined?
+  if(isMember()){
+    return _runCallback("onAllJoining");
+  }
 }
 
 function _handleNoneMembership(chat_id, userData){
