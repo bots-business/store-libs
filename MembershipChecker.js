@@ -265,6 +265,11 @@ function _needStillJoinedCallback(userData) {
 }
 
 function _runCallback(command, chat_id){
+  _debugInfo(
+    "run callback: " + command + " for chat: " + chat_id +
+    "\n\n> " + JSON.stringify(options)
+  );
+
   Bot.run({
     command: command,
     options: {
@@ -288,7 +293,6 @@ function _proccessOldChat(userData){
   }
 
   const opts = _getLibOptions();
-  _debugInfo("run still joined callback: " + opts.onStillJoined);
 
   return _runCallback(opts.onStillJoined);
 }
@@ -321,10 +325,6 @@ function handleMembership(chat_id, userData){
     );
     return
   }
-
-  _debugInfo("run onJoining callback: " + opts.onJoining + " for " + chat_id +
-    "\n\n> " + JSON.stringify(userData) + "\n\n> " + JSON.stringify(options)
-  );
 
   return _runCallback(opts.onJoining, chat_id);
 }
