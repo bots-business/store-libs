@@ -264,9 +264,18 @@ function _needStillJoinedCallback(userData) {
   return sameTime;
 }
 
-function _runCallback(command, chat_id){
+function _runCallback(callbackName, chat_id){
+  const opts = _getLibOptions();
+  const command = opts[callbackName];
+
+  if(!command){
+    _debugInfo("callback is not installed: " + callbackName + ". Chat: " + chat_id +
+    "\n\n> " + JSON.stringify(options));
+    return false;
+  }
+
   _debugInfo(
-    "run callback: " + command + " for chat: " + chat_id +
+    "run callback: " + callbackName + ">" + command + ", for chat: " + chat_id +
     "\n\n> " + JSON.stringify(options)
   );
 
@@ -292,9 +301,7 @@ function _proccessOldChat(userData){
     return true
   }
 
-  const opts = _getLibOptions();
-
-  return _runCallback(opts.onStillJoined);
+  return _runCallback("onStillJoined");
 }
 
 function handleMembership(chat_id, userData){
@@ -326,18 +333,13 @@ function handleMembership(chat_id, userData){
     return
   }
 
-  return _runCallback(opts.onJoining, chat_id);
+  return _runCallback("onJoining", chat_id);
 }
 
 function _handleNoneMembership(chat_id, userData){
-  let opts = _getLibOptions();
-
   userData.chats[chat_id] = false
   _saveUserData(userData);
-
-  if(!opts.onNeedJoining){ return }  // no action
-
-  return _runCallback(command, chat_id);
+  return _runCallback("onNeedJoining", chat_id);
 }
 
 function onCheckMembership(){
