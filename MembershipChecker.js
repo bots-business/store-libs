@@ -407,13 +407,16 @@ function _getNotJoinedChats(){
   return notJoined
 }
 
+function _throwErrorIfNoChats(){
+  if(_getLibOptions().chats){ return }
+
+  throw new Error("MembershipChecker: please install chats for checking in Admin Panel");
+}
+
 function _getChatsArr(needError){
   let options = _getLibOptions();
 
-  const error = "MembershipChecker: no chats for checking";
-  if(!options.chats){
-    if(needError){ throw new Error(error) }
-  }
+  if(!options.chats){ return [] }
 
   let chats = options.chats.split(" ").join(""); // remove spaces
   chats = chats.split(",");
@@ -428,7 +431,8 @@ function isMember(chat_id){
     return _isActualMembership(chat_id);
   }
 
-  _getChatsArr(true)  // with error if no chats
+  _throwErrorIfNoChats();
+  _getChatsArr()  // with error if no chats
 
   // for all chats
   return ( _getNotJoinedChats().length == 0 )
