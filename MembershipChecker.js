@@ -427,7 +427,6 @@ function isMember(chat_id){
   }
 
   _throwErrorIfNoChats();
-  _getChatsArr()  // with error if no chats
 
   // for all chats
   return ( _getNotJoinedChats().length == 0 )
