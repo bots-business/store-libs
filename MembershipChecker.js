@@ -264,6 +264,18 @@ function _needStillJoinedCallback(userData) {
   return sameTime;
 }
 
+function _runCallback(command, chat_id){
+  Bot.run({
+    command: command,
+    options: {
+      result: options.result,
+      bb_options: options.bb_options.passed_options,
+      chat_id: chat_id
+    }
+  })
+  return true;
+}
+
 function _proccessOldChat(userData){
   // it is still joined chat
   _debugInfo("skip old chat");
@@ -278,14 +290,7 @@ function _proccessOldChat(userData){
   const opts = _getLibOptions();
   _debugInfo("run still joined callback: " + opts.onStillJoined);
 
-  Bot.run({
-    command: opts.onStillJoined,
-    options: {
-      bb_options: options.bb_options.passed_options
-    }
-  })
-
-  return true
+  return _runCallback(opts.onStillJoined);
 }
 
 function handleMembership(chat_id, userData){
@@ -321,12 +326,7 @@ function handleMembership(chat_id, userData){
     "\n\n> " + JSON.stringify(userData) + "\n\n> " + JSON.stringify(options)
   );
 
-  Bot.run({
-    command: opts.onAllJoining,
-    options: {
-      bb_options: options.bb_options.passed_options
-    }
-  })
+  return _runCallback(opts.onJoining, chat_id);
 }
 
 function _handleNoneMembership(chat_id, userData){
@@ -337,14 +337,7 @@ function _handleNoneMembership(chat_id, userData){
 
   if(!opts.onNeedJoining){ return }  // no action
 
-  Bot.run({
-    command: opts.onNeedJoining,
-    options: {
-      chat_id: chat_id,
-      result: options.result,
-      bb_options: options.bb_options.passed_options
-    }
-  })
+  return _runCallback(command, chat_id);
 }
 
 function onCheckMembership(){
