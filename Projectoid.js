@@ -1,9 +1,9 @@
 //The Global Variables
-let libPrefix = "projectoid";
-let API_URL = "https://api.projectoid.site/v1";
+const libPrefix = "projectoid";
+const API_URL = "https://api.projectoid.site/v1";
 
 // Function to convert JSON to URL query string
-function jTQS(jsonData) {
+function convertJsonToQueryString(jsonData) {
   let queryString = Object.keys(jsonData)
     .map(function (key) {
       return encodeURIComponent(key) + "=" + encodeURIComponent(jsonData[key]);
@@ -18,14 +18,22 @@ function jTQS(jsonData) {
  * @since 1.0.0
  *
  * @param {object} options - The API call options.
+ * Example options:
+ * {
+ *   path: "example/endpoint",
+ *   method: "post",
+ *   body: { key1: "value1", key2: "value2" },
+ *   onSuccess: "handleSuccess",
+ *   onError: "handleError"
+ * }
  */
 function apiCall(options) {
   if (!options) {
-    throw libPrefix + ": apiCall: options not found";
+    throw libPrefix + ": apiCall: parameters not found";
   }
   let url = API_URL + "/" + options.path;
   if (options.method.toLowerCase() === "get") {
-    url += "?" + jTQS(options.body);
+    url += "?" + convertJsonToQueryString(options.body);
   }
   let apiData = {
     url: url,
@@ -57,7 +65,7 @@ function apiCall(options) {
  *
  * @param {string} access_token - The Projectoid access token to save.
  */
-function saveToken(access_token) {
+function saveAccessToken(access_token) {
   if (!access_token) {
     throw libPrefix + ": Projectoid Access Token Not Found";
   }
@@ -67,6 +75,13 @@ function saveToken(access_token) {
   Bot.setProperty("Projectoid_AccessToken", access_token);
 }
 
+function getAccessToken(){
+  const access_token = Bot.getProperty("Projectoid_AccessToken");
+  if(!access_token){
+    throw libPrefix + ': Bot Access Token Not Found';
+  }
+  return access_token;
+}
 /**
  * addChat() - Adds a chat to Projectoid.
  *
@@ -96,7 +111,7 @@ function addChat(chatid, access_token, command) {
       user_id: chatid,
       access_token,
     },
-    onSuccess: !command ? null : command,
+    onSuccess: command ? command : null,
   };
   apiCall(requestData);
 }
@@ -108,10 +123,26 @@ function addChat(chatid, access_token, command) {
  * @since 1.0.0
  *
  * @param {object} options - The broadcast options.
+ * Example options: 
+ * {
+ *  method: "sendMessage",
+ *  text: "Hello, world!",
+ *  type: "text",
+ *  file_id: null,
+ *  caption: "This is a caption",
+ *  message_id: 12, //for forwardBroadcast or copyBroadcast
+ *  from_chat_id: 10967486043, //for forwardBroadcast or copyBroadcast
+ *  parseMode: "HTML",
+ *  disableWebPreview: false,
+ *  protectContent: true,
+ *  webhookUrl: "https://example.com/webhook",
+ *  command: "handleSuccessCommand",
+ *  access_token: "your_access_token_here", // Optional, if not provided, it will use the saved access token.
+ * };
  */
 function initiateBroadcast(options) {
   if (!options) {
-    throw libPrefix + ": initiateBroadcast: options not found";
+    throw libPrefix + ": initiateBroadcast: parameters not found";
   }
   if (!options.method) {
     throw libPrefix + ": initiateBroadcast: broadcast method not found";
@@ -124,25 +155,14 @@ function initiateBroadcast(options) {
     initiateCopyBroadcast(options);
     return;
   }
+  
+  const {
+    text = null, type = null, file_id = null, caption = null, 
+    parseMode = null, disableWebPreview = null, 
+    protectContent = false, webhookUrl = null, command = null 
+  } = options;
 
-  let text = !options.text ? null : options.text;
-  let type = !options.type ? null : options.type;
-  let file_id = !options.file_id ? null : options.file_id;
-  let caption = !options.caption ? null : options.caption;
-  let parseMode = !options.parseMode ? null : options.parseMode;
-  let disableWebPreview = !options.disableWebPreview
-    ? null
-    : options.disableWebPreview;
-  let protectContent = !options.protectContent ? false : options.protectContent;
-  let webhookUrl = !options.webhookUrl ? null : options.webhookUrl;
-  let cmd = !options.command ? null : options.command;
-
-  if (!options.access_token) {
-    var access_token = Bot.getProperty("Projectoid_AccessToken");
-    if (!access_token) {
-      throw libPrefix + ": initiateBroadcast: Bot Access Token Not Found";
-    }
-  }
+  const access_token = options.access_token ?? getAccessToken();
 
   let requestData = {
     path: "telegram/botpanel/broadcast.php",
@@ -171,22 +191,13 @@ function initiateForwardBroadcast(options) {
   if (!options) {
     throw libPrefix + ": initiateForwardBroadcast: options not found";
   }
-  let from_chat_id = options.from_chat_id;
-  let message_id = options.message_id;
+  const { from_chat_id, message_id, protectContent = false, webhookUrl = null, command = null } = options;
 
-  if (!from_chat_id || !message_id) {    
+  if (!from_chat_id || !message_id) {
     throw libPrefix + ": initiateForwardBroadcast: chat id or message id was not found";
   }
-  let protectContent = !options.protectContent ? false : options.protectContent;
-  let webhookUrl = !options.webhookUrl ? null : options.webhookUrl;
-  let cmd = !options.command ? null : options.command;
 
-  if (!options.access_token) {
-    var access_token = Bot.getProperty("Projectoid_AccessToken");
-    if (!access_token) {
-      throw libPrefix + ": initiateForwardBroadcast: Bot Access Token Not Found";
-    }
-  }
+  const access_token = options.access_token ?? getAccessToken();
 
   let requestData = {
     path: "telegram/botpanel/broadcast.php",
@@ -201,7 +212,7 @@ function initiateForwardBroadcast(options) {
       protectContent,
       webhookUrl,
     },
-    onSuccess: cmd,
+    onSuccess: command,
   };
   apiCall(requestData);
 }
@@ -210,22 +221,13 @@ function initiateCopyBroadcast(options) {
   if (!options) {
     throw libPrefix + ": initiateCopyBroadcast: options not found";
   }
-  let from_chat_id = options.from_chat_id;
-  let message_id = options.message_id;
-
+  const { from_chat_id, message_id, protectContent = false, webhookUrl = null, command = null } = options;
+  
   if (!from_chat_id || !message_id) {
     throw libPrefix + ": initiateCopyBroadcast: chat id or message id was not found";
   }
-  let protectContent = !options.protectContent ? false : options.protectContent;
-  let webhookUrl = !options.webhookUrl ? null : options.webhookUrl;
-  let cmd = !options.command ? null : options.command;
-
-  if (!options.access_token) {
-    var access_token = Bot.getProperty("Projectoid_AccessToken");
-    if (!access_token) {
-      throw libPrefix + ": initiateCopyBroadcast: Bot Access Token Not Found";
-    }
-  }
+  
+  const access_token = options.access_token ?? getAccessToken();
 
   let requestData = {
     path: "telegram/botpanel/broadcast.php",
@@ -240,7 +242,7 @@ function initiateCopyBroadcast(options) {
       protectContent,
       webhookUrl,
     },
-    onSuccess: cmd,
+    onSuccess: command,
   };
   apiCall(requestData);
 }
@@ -281,7 +283,7 @@ function checkMembership(options) {
 }
 
 // Function called when an API answer is received
-function onApiAnswer() {
+function _onApiAnswer() {
   // Parse the content of the response, which is in JSON format
   let options = content;
   try {
@@ -295,19 +297,27 @@ function onApiAnswer() {
 }
 
 // Function called when an API request results in an error
-function onApiError() {
+function _onApiError() {
   throw libPrefix + ": " + content + "\nGet Help at @ProjectoidChat";
 }
 
+/** 
+* saveAccessToken() - Saves the Projectoid access token.
+* saveAccessToken() - Saves the Projectoid access token to use in functions when not declared.
+* addChat() - Attempts to Add a chat to Projectoid Database.
+* initiateForwardBroadcast() - Forwards a message to multiple chats.
+* initiateCopyBroadcast() - Copies a message to multiple chats.
+* checkMembership() - Checks membership of users in chats.
+*/
 publish({
   apiCall: apiCall,
   addChat: addChat,
-  saveToken: saveToken,
+  saveAccessToken: saveAccessToken,
   initiateBroadcast: initiateBroadcast,
   initiateForwardBroadcast: initiateForwardBroadcast,
   initiateCopyBroadcast: initiateCopyBroadcast,
   checkMembership: checkMembership,
 });
 
-on(libPrefix + "onApiAnswer", onApiAnswer);
-on(libPrefix + "onApiError", onApiError);
+on(libPrefix + "_onApiAnswer", onApiAnswer);
+on(libPrefix + "_onApiError", onApiError);
