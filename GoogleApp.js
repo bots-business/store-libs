@@ -61,7 +61,7 @@ function run(options){
 
   HTTP.post( {
     url: url,
-    // success: "" - no success 
+    // success: "" - no success
     error: libPrefix + "onHttpError",
     body: {
       code: func + ";" + func.name + "()",
@@ -102,10 +102,9 @@ function getData(){
 function inspectError(json){
   var error = json.error;
   if(!error){ return }
-  
-  Bot.sendMessage("Error on Google App script: " + 
+
+  Bot.sendMessage("Error on Google App script: " +
     inspect(error.name) + "\n\n" + inspect(error.message) );
-  Bot.sendMessage("Stack: " + inspect(error.stack))
   Bot.sendMessage("Code: " + inspect(error.code))
   return true
 }
@@ -131,19 +130,6 @@ function doUserOnRun(data){
 function onRun(){
   var json = parseContent();
   doUserOnRun(json);
-}
-
-function inspectError(json){
-  var error = json.error;
-  if(!error){ return }
-  
-  Bot.sendMessage("Error on Google App script: " +
-    inspect(error.name) + "\n\n" + inspect(error.message) );
-
-  Bot.sendMessage("Stack: " + inspect(error.stack))
-  Bot.sendMessage("Code: " + inspect(error.code))
-
-  return true
 }
 
 function onDebugRun(){
