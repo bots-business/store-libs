@@ -30,15 +30,23 @@ function _setupAdminPanel(){
       {
         name: "onNeedJoining",
         title: "onNeedJoining command",
-        description: "if the user does not have a membership, this command will be executed",
+        description: "if the user does not have a membership to ANY chat or channel, this command will be executed",
         type: "string",
         placeholder: "/onNeedJoining",
+        icon: "warning"
+      },
+      {
+        name: "onNeedAllJoining",
+        title: "onNeedAllJoining command",
+        description: "if the user does not have a membership to ALL chats and channels, this command will be executed",
+        type: "string",
+        placeholder: "/onNeedAllJoining",
         icon: "alert"
       },
       {
         name: "onJoining",
         title: "onJoining command",
-        description: "if the user just received a membership for any chat or channel this command will be executed",
+        description: "if the user just received a membership for ANY chat or channel this command will be executed",
         type: "string",
         placeholder: "/onJoining",
         icon: "person-add"
@@ -46,7 +54,7 @@ function _setupAdminPanel(){
       {
         name: "onAllJoining",
         title: "onAllJoining command",
-        description: "if the user just received a membership for all chats and channels this command will be executed",
+        description: "if the user just received a membership for ALL chats and channels this command will be executed",
         type: "string",
         placeholder: "/onAllJoining",
         icon: "happy"
@@ -131,6 +139,7 @@ function _isInternalCommands(opts){
     _msgIncludes(opts.onJoining)||
     _msgIncludes(opts.onAllJoining)||
     _msgIncludes(opts.onNeedJoining)||
+    _msgIncludes(opts.onNeedAllJoining)||
     _msgIncludes(opts.onError)
   )
 }
@@ -204,6 +213,7 @@ function check(passed_options, noNeedOnStillJoined){
       needStillJoinedCallback: !noNeedOnStillJoined,      // if true - we need to call still joined callback
       bb_options: passed_options,                         // customized passed options
     },
+    // TODO: need decrease this time to 0.01
     run_after: 1                                          // just for run in background
   })
 }
@@ -238,7 +248,8 @@ function checkMemberships(){
     Bot.run({
       command: LIB_PREFIX + "checkMembership " + chat_id,
       options: options,          // passed options
-      run_after: 1,              // just for run in background
+      // TODO: need decrease this time to 0.01
+      run_after: 1              // just for run in background
     })
   }
 }
@@ -250,19 +261,23 @@ function _isJoined(response){
 }
 
 
+function _isSameChatsCheckingTime(chats, needNegative){
+  let lastCheckTime = options.bb_options.time;
+  if(needNegative){ lastCheckTime = -lastCheckTime }
+  const sameTime = Object.values(chats).every(
+    value => value === lastCheckTime
+  );
+
+  return sameTime;
+}
+
 function _needStillJoinedCallback(userData) {
   // we need callback only with check() method not in handle()
   if(!options.bb_options.needStillJoinedCallback){ return false }
   // callback must be installed
   if(!_getLibOptions().onStillJoined){ return false }
 
-  // all chats have same time - lastCheckTime
-  const lastCheckTime = options.bb_options.time;
-  const sameTime = Object.values(userData.chats).every(
-    value => value === lastCheckTime
-  );
-
-  return sameTime;
+  return _isSameChatsCheckingTime(userData.chats);
 }
 
 function _runCallback(callbackName, chat_id){
@@ -306,7 +321,9 @@ function _proccessOldChat(userData){
 }
 
 function handleMembership(chat_id, userData){
-  const isOld = userData.chats[chat_id];
+  const checkTime = userData.chats[chat_id];
+  // we have negative time - it is not joined chat
+  const isOld = ( checkTime && checkTime > 0 );
 
   // we use same time - because need to track still joined callback
   userData.chats[chat_id] = options.bb_options.time;
@@ -343,9 +360,13 @@ function handleMembership(chat_id, userData){
 }
 
 function _handleNoneMembership(chat_id, userData){
-  userData.chats[chat_id] = false
+  userData.chats[chat_id] = -options.bb_options.time  // we use negative time for not joined chats
   _saveUserData(userData);
-  return _runCallback("onNeedJoining", chat_id);
+  _runCallback("onNeedJoining", chat_id);
+
+  if(_needToJoinAll(userData.chats)){
+    _runCallback("onNeedAllJoining");
+  }
 }
 
 function onCheckMembership(){
@@ -391,13 +412,13 @@ function _isActualMembership(chat_id){
   if(!chat_id){ return false }
 
   let userData = _getUserData()
-  return userData.chats[chat_id]
+  return userData.chats[chat_id] > 0
 }
 
 function _getNotJoinedChats(){
   let result;
   let notJoined = [];
-  let chats = _getChatsArr();
+  const chats = _getChatsArr();
 
   for(let ind in chats){
     result = _isActualMembership(chats[ind]);
@@ -406,6 +427,21 @@ function _getNotJoinedChats(){
     }
   }
   return notJoined
+}
+
+function _needToJoinAll(chats){
+  let result;
+  for(let ind in chats){
+    result = _isActualMembership(chats[ind]);
+    if(result){
+      return false;
+    }
+  }
+
+  // same negative time for all chats
+  // we use negative time for not joined chats
+  // it will be in the end checking only
+  return _isSameChatsCheckingTime(chats, true);
 }
 
 function _throwErrorIfNoChats(){
