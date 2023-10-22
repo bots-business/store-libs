@@ -104,13 +104,11 @@ function _getLibOptions(){
 function _getActualChatsOnly(userData){
   // admin can remove chats in any time. We need to remove it from userData too
   let chatsInSettings = _getChatsArr();
-  let chat_id;
-  let actualChats = [];
-  for(let ind in userData.chats){
-    chat_id = chats[ind];
+  let actualChats = {};
+  for(let chat_id in userData.chats){
     let chatStillInSettings = chatsInSettings.includes(chat_id)
     if(!chatStillInSettings){ continue }
-    actualChats.push(chat_id)
+    actualChats[chat_id] = userData.chats[chat_id]
   }
   return actualChats
 }
