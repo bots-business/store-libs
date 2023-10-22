@@ -101,10 +101,26 @@ function _getLibOptions(){
   return AdminPanel.getPanelValues("MembershipChecker");
 }
 
+function _getActualChatsOnly(userData){
+  // admin can remove chats in any time. We need to remove it from userData too
+  let chatsInSettings = _getChatsArr();
+  let chat_id;
+  let actualChats = [];
+  for(let ind in userData.chats){
+    chat_id = chats[ind];
+    let chatStillInSettings = chatsInSettings.includes(chat_id)
+    if(!chatStillInSettings){ continue }
+    actualChats.push(chat_id)
+  }
+  return actualChats
+}
+
 function _getUserData(){
   let userData = User.getProperty(LIB_PREFIX + "Data");
   if(!userData){ userData = { chats: {} } }
   if(!userData.chats){ userData.chats = {} }
+
+  userData.chats = _getActualChatsOnly(userData);
   return userData;
 }
 
@@ -410,7 +426,6 @@ function _canRunHandleAgain(curTime){
 
 function _isActualMembership(chat_id){
   if(!chat_id){ return false }
-
   let userData = _getUserData()
   return userData.chats[chat_id] > 0
 }
