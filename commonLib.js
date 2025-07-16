@@ -9,13 +9,17 @@ function getNameFor(member){
   return member.first_name ? member.first_name : member.last_name
 }
 
-function getLinkFor(member){
+function getLinkFor(member, parse_mode){
   let name = getNameFor(member);
   if(name==""){
     name = member.telegramid;
   }
 
-  return "[" + name + "](tg://user?id=" + member.telegramid + ")";
+  if(!parse_mode){
+    return "[" + name + "](tg://user?id=" + member.telegramid + ")";
+  }
+
+  return "<a href=\"tg://user?id=" + member.telegramid + "\">" + name + "</a>";
 }
 
 publish({

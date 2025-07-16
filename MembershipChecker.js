@@ -114,6 +114,10 @@ function _getActualChatsOnly(userData){
 }
 
 function _getUserData(){
+  if(!user){
+    throw new Error("MembershipChecker: user is not exist. Seems it is background task")
+  }
+
   let userData = User.getProperty(LIB_PREFIX + "Data");
   if(!userData){ userData = { chats: {} } }
   if(!userData.chats){ userData.chats = {} }

@@ -35,7 +35,7 @@ function get(lang){
 
   let json = Bot.getProperty(LIB_PREFIX + curLng);
   if(!json){
-    throw new Error("Language is not setup: " + curLng);
+    throw new Error("Language is not configured: " + curLng);
   }
 
   return json;
